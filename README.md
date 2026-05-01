@@ -1,36 +1,93 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# DormCheck
 
-## Getting Started
+Digital dorm check-in system for YK Pao School. Replaces paper rosters for morning/evening temperature checks.
 
-First, run the development server:
+## Setup
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+pnpm install
+cp .env.example .env
+# Fill in DATABASE_URL and AUTH_SECRET in .env
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Database
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Uses Neon Postgres. Get a free database at [neon.tech](https://neon.tech).
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+# Push schema to database
+pnpm db:push
 
-## Learn More
+# Seed demo data (1 device, 10 students, 1 admin user)
+pnpm db:seed
+```
 
-To learn more about Next.js, take a look at the following resources:
+### Run
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+pnpm dev
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Open [http://localhost:3000](http://localhost:3000). Login with:
+- Email: `admin@dormcheck.local`
+- Password: `admin123`
 
-## Deploy on Vercel
+## Environment Variables
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+| Variable | Description |
+|---|---|
+| `DATABASE_URL` | Neon Postgres connection string |
+| `AUTH_SECRET` | Random secret for NextAuth.js (generate with `openssl rand -base64 32`) |
+| `AUTH_URL` | App URL, e.g. `http://localhost:3000` |
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## API
+
+### POST /api/checkin
+
+Called by Android PDAs when a student scans their NFC card.
+
+```bash
+curl -X POST http://localhost:3000/api/checkin \
+  -H "Content-Type: application/json" \
+  -H "X-Device-API-Key: YOUR_DEVICE_API_KEY" \
+  -d '{
+    "uid": "AABBCCDD",
+    "temperature": 36.5,
+    "check_type": "morning",
+    "device_id": "demo-pda-1"
+  }'
+```
+
+Response:
+```json
+{
+  "ok": true,
+  "student_id": "s99001",
+  "name": "Alice Wang",
+  "grade": 9,
+  "is_late": false,
+  "is_fever": false,
+  "message": "OK"
+}
+```
+
+Auth: `X-Device-API-Key` header with a device API key (created in the Devices page).
+
+### POST /api/students/bind
+
+Bind an NFC card UID to a student:
+
+```bash
+curl -X POST http://localhost:3000/api/students/bind \
+  -H "Content-Type: application/json" \
+  -H "Cookie: YOUR_SESSION_COOKIE" \
+  -d '{"student_id": "s99001", "uid": "AABBCCDD"}'
+```
+
+## Stack
+
+- Next.js 15 (App Router) + TypeScript
+- Postgres via Drizzle ORM (Neon)
+- NextAuth.js (email + password)
+- Tailwind CSS + shadcn/ui
+- SSE for live dashboard updates
