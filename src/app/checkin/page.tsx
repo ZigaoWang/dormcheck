@@ -37,6 +37,7 @@ export default function CheckinPage() {
 
   const [phase, setPhase] = useState<Phase>("scanning");
   const [studentId, setStudentId] = useState("");
+  const [studentName, setStudentName] = useState("");
   const [temperature, setTemperature] = useState("");
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<CheckinResult | null>(null);
@@ -133,17 +134,26 @@ export default function CheckinPage() {
       clearTimeout(resultTimeoutRef.current);
     }
     setStudentId("");
+    setStudentName("");
     setTemperature("");
     setResult(null);
     setPhase("scanning");
   }
 
-  function handleBarcodeScan(value: string) {
+  async function handleBarcodeScan(value: string) {
     const digits = value.replace(/\D/g, "").slice(0, 5);
     if (digits.length === 5) {
       setStudentId(digits);
+      setStudentName("");
       setPhase("temperature");
       setTimeout(() => temperatureRef.current?.focus(), 100);
+      try {
+        const res = await fetch(`/api/students/list?search=${digits}`, {
+          headers: { "X-Device-API-Key": apiKey },
+        });
+        const data = await res.json();
+        if (Array.isArray(data) && data.length > 0) setStudentName(data[0].name);
+      } catch {}
     }
   }
 
@@ -221,36 +231,32 @@ export default function CheckinPage() {
       <BarcodeScanner onScan={handleBarcodeScan} paused={phase !== "scanning"} />
 
       {/* Top bar overlay */}
-      <div className="absolute top-0 left-0 right-0 z-10 flex items-center justify-between bg-gradient-to-b from-black/70 to-transparent px-4 pb-8 pt-4">
+      <div className="absolute top-0 left-0 right-0 z-10 flex items-center justify-between px-5 pt-[env(safe-area-inset-top,12px)] pb-8 bg-gradient-to-b from-black/80 via-black/40 to-transparent">
         <div>
-          <h1 className="text-lg font-semibold text-white">DormCheck</h1>
-          <p className="text-xs text-white/60">
+          <h1 className="text-lg font-semibold text-white tracking-tight">DormCheck</h1>
+          <p className="text-xs text-white/50">
             {device.name}{device.house && ` · House ${device.house}`}
           </p>
         </div>
         <div className="flex items-center gap-2">
           {successCount > 0 && (
-            <span className="rounded-full bg-green-500/20 px-2.5 py-1 text-xs font-medium text-green-300">
+            <span className="rounded-full bg-white/10 px-2.5 py-1 text-xs font-medium text-green-400 backdrop-blur-sm">
               {successCount}
             </span>
           )}
-          <div className="flex gap-1">
+          <div className="flex gap-0.5 rounded-full bg-white/10 p-0.5 backdrop-blur-sm">
             <button
               onClick={() => setCheckType("morning")}
-              className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
-                checkType === "morning"
-                  ? "bg-white text-black"
-                  : "bg-white/20 text-white"
+              className={`rounded-full px-3 py-1.5 text-xs font-medium transition-all ${
+                checkType === "morning" ? "bg-white text-black shadow-sm" : "text-white/70"
               }`}
             >
               Morning
             </button>
             <button
               onClick={() => setCheckType("studyhall")}
-              className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
-                checkType === "studyhall"
-                  ? "bg-white text-black"
-                  : "bg-white/20 text-white"
+              className={`rounded-full px-3 py-1.5 text-xs font-medium transition-all ${
+                checkType === "studyhall" ? "bg-white text-black shadow-sm" : "text-white/70"
               }`}
             >
               Study Hall
@@ -260,24 +266,24 @@ export default function CheckinPage() {
       </div>
 
       {/* Bottom bar — recent history */}
-      <div className="absolute bottom-0 left-0 right-0 z-10 bg-gradient-to-t from-black/80 to-transparent px-4 pt-8 pb-4">
-        {phase === "scanning" && history.length > 0 && (
-          <div className="space-y-1">
-            {history.slice(0, 3).map((h, i) => (
-              <div key={i} className="flex items-center justify-between text-sm">
-                <span className="text-white/80">{h.name} <span className="text-white/40">{h.student_id}</span></span>
-                <span className={
-                  h.is_fever ? "text-red-400" : h.is_late ? "text-yellow-400" : "text-green-400"
-                }>
-                  {h.is_fever ? "Fever" : h.is_late ? "Late" : "OK"}
-                </span>
-              </div>
-            ))}
-          </div>
-        )}
-        {phase === "scanning" && (
-          <div className="mt-3 flex items-center justify-between">
-            <p className="text-xs text-white/40">Scan student barcode</p>
+      {phase === "scanning" && (
+        <div className="absolute bottom-0 left-0 right-0 z-10 bg-gradient-to-t from-black/90 via-black/50 to-transparent px-5 pt-12 pb-[env(safe-area-inset-bottom,16px)]">
+          {history.length > 0 && (
+            <div className="space-y-1.5 mb-3">
+              {history.slice(0, 3).map((h, i) => (
+                <div key={i} className="flex items-center justify-between text-sm">
+                  <span className="text-white/80 font-medium">{h.name} <span className="text-white/30 font-normal">{h.student_id}</span></span>
+                  <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
+                    h.is_fever ? "bg-red-500/20 text-red-400" : h.is_late ? "bg-yellow-500/20 text-yellow-400" : "bg-green-500/20 text-green-400"
+                  }`}>
+                    {h.is_fever ? "Fever" : h.is_late ? "Late" : "OK"}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+          <div className="flex items-center justify-between">
+            <p className="text-xs text-white/30">Scan student barcode</p>
             <button
               onClick={() => {
                 localStorage.removeItem("dormcheck_api_key");
@@ -286,119 +292,55 @@ export default function CheckinPage() {
                 setHistory([]);
                 setSuccessCount(0);
               }}
-              className="text-xs text-white/30 hover:text-white/60"
+              className="text-xs text-white/20 hover:text-white/50 transition-colors"
             >
               Disconnect
             </button>
           </div>
-        )}
-      </div>
-
-      {/* Center scan indicator */}
-      {phase === "scanning" && (
-        <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center">
-          <div className="h-32 w-64 rounded-lg border-2 border-white/30" />
         </div>
       )}
 
-      {/* Temperature popup */}
+      {/* Temperature — full screen */}
       {phase === "temperature" && (
-        <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/60 backdrop-blur-sm">
-          <div className="mx-4 w-full max-w-sm rounded-2xl bg-white p-6 shadow-2xl">
-            <div className="mb-4 text-center">
-              <p className="text-sm text-gray-500">Student ID</p>
-              <p className="text-2xl font-bold font-mono">{studentId}</p>
-            </div>
-
-            <form onSubmit={handleTemperatureSubmit} className="space-y-4">
-              <div className="space-y-1">
-                <Label className="text-sm font-medium">Temperature (°C)</Label>
-                <Input
-                  ref={temperatureRef}
-                  value={temperature}
-                  onChange={(e) => setTemperature(e.target.value)}
-                  placeholder="36.5"
-                  type="number"
-                  step="0.1"
-                  inputMode="decimal"
-                  className="h-14 text-center text-2xl"
-                  autoFocus
-                  required
-                />
-              </div>
-
-              <Button
-                type="submit"
-                className="h-12 w-full text-base"
-                disabled={loading || !temperature.trim()}
-              >
-                {loading ? "Submitting..." : "Submit"}
-              </Button>
-
-              <button
-                type="button"
-                onClick={resetForNext}
-                className="block w-full text-center text-sm text-gray-400 hover:text-gray-600"
-              >
-                Cancel
-              </button>
-            </form>
-          </div>
+        <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-white px-8 animate-in fade-in duration-150">
+          <p className="text-5xl font-bold tracking-tight">{studentName || studentId}</p>
+          {studentName && <p className="mt-2 text-xl font-mono text-gray-400">{studentId}</p>}
+          <form onSubmit={handleTemperatureSubmit} className="mt-10 w-full max-w-xs space-y-5">
+            <Input
+              ref={temperatureRef}
+              value={temperature}
+              onChange={(e) => setTemperature(e.target.value)}
+              placeholder="36.5"
+              type="number"
+              step="0.1"
+              inputMode="decimal"
+              className="h-24 w-full text-center font-mono border-0 border-b-4 border-gray-200 rounded-none shadow-none focus-visible:ring-0 focus-visible:border-black placeholder:text-gray-200 bg-transparent"
+              style={{ fontSize: "4rem" }}
+              autoFocus
+              required
+            />
+            <Button type="submit" className="h-14 w-full rounded-xl text-lg" disabled={loading || !temperature.trim()}>
+              {loading ? "Submitting..." : "Check In"}
+            </Button>
+          </form>
+          <button type="button" onClick={resetForNext} className="mt-8 text-sm text-gray-300">Cancel</button>
         </div>
       )}
 
-      {/* Result popup */}
+      {/* Result — same layout as temperature, just colored */}
       {phase === "result" && result && (
         <div
-          className="absolute inset-0 z-20 flex items-center justify-center bg-black/60 backdrop-blur-sm"
+          className={`absolute inset-0 z-30 flex flex-col items-center justify-center px-8 animate-in fade-in duration-150 ${
+            result.ok && !result.is_fever && !result.is_late ? "bg-green-600"
+            : result.ok && result.is_late ? "bg-orange-600"
+            : "bg-red-600"
+          }`}
           onClick={resetForNext}
         >
-          <div
-            className={`mx-4 w-full max-w-sm rounded-2xl p-8 text-center shadow-2xl ${
-              result.ok && !result.is_fever && !result.is_late
-                ? "bg-green-50"
-                : result.ok && result.is_late
-                  ? "bg-yellow-50"
-                  : "bg-red-50"
-            }`}
-          >
-            {result.ok ? (
-              <>
-                <div className={`mx-auto mb-3 flex h-16 w-16 items-center justify-center rounded-full ${
-                  result.is_fever ? "bg-red-100" : result.is_late ? "bg-yellow-100" : "bg-green-100"
-                }`}>
-                  {result.is_fever ? (
-                    <span className="text-2xl">🌡️</span>
-                  ) : result.is_late ? (
-                    <span className="text-2xl">⏰</span>
-                  ) : (
-                    <svg className="h-8 w-8 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                    </svg>
-                  )}
-                </div>
-                <p className="text-xl font-bold">{result.name}</p>
-                <p className="text-sm text-gray-500">
-                  {result.student_id} · Year {result.grade}
-                </p>
-                <p className={`mt-2 text-sm font-semibold ${
-                  result.is_fever ? "text-red-600" : result.is_late ? "text-yellow-700" : "text-green-600"
-                }`}>
-                  {result.message}
-                </p>
-              </>
-            ) : (
-              <>
-                <div className="mx-auto mb-3 flex h-16 w-16 items-center justify-center rounded-full bg-red-100">
-                  <svg className="h-8 w-8 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </div>
-                <p className="text-lg font-semibold text-red-600">{result.message}</p>
-              </>
-            )}
-            <p className="mt-4 text-xs text-gray-400">Tap anywhere or wait...</p>
-          </div>
+          <p className="text-5xl font-bold tracking-tight text-white">{result.name || result.student_id}</p>
+          {result.name && <p className="mt-2 text-xl font-mono text-white/60">{result.student_id}</p>}
+          <p className="mt-6 text-2xl font-semibold text-white/90">{result.message}</p>
+          <p className="mt-10 text-sm text-white/40">Tap anywhere</p>
         </div>
       )}
     </div>

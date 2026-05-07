@@ -1,17 +1,27 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { students } from "@/lib/db/schema";
+import { students, devices } from "@/lib/db/schema";
 import { eq, and, or, ilike } from "drizzle-orm";
 import { getSessionUser, houseFilter } from "@/lib/session";
 
 export async function GET(req: NextRequest) {
-  const user = await getSessionUser();
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
   const url = new URL(req.url);
   const search = url.searchParams.get("search");
   const requestedHouse = url.searchParams.get("house");
-  const house = houseFilter(user, requestedHouse);
+
+  // Support device API key auth for PDA check-in lookups
+  const deviceKey = req.headers.get("X-Device-API-Key");
+  let house: string | null = null;
+
+  if (deviceKey) {
+    const [device] = await db.select().from(devices).where(eq(devices.apiKey, deviceKey)).limit(1);
+    if (!device) return NextResponse.json({ error: "Invalid API key" }, { status: 401 });
+    house = device.house;
+  } else {
+    const user = await getSessionUser();
+    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    house = houseFilter(user, requestedHouse);
+  }
 
   const conditions = [];
   if (house) conditions.push(eq(students.house, house));
