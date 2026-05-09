@@ -1,0 +1,367 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+<LinearLayout
+    android:id="@+id/main_content"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/background"
+    android:orientation="vertical">
+
+    <!-- Top bar -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:background="@color/primary"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="16dp"
+        android:paddingEnd="8dp">
+
+        <TextView
+            android:id="@+id/text_device_name"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:textColor="@color/white"
+            android:textSize="16sp" />
+
+        <Button
+            android:id="@+id/btn_manual_input"
+            android:layout_width="wrap_content"
+            android:layout_height="36dp"
+            android:text="@string/manual_input"
+            android:textSize="14sp"
+            android:layout_marginEnd="8dp"
+            android:backgroundTint="@color/white"
+            android:textColor="@color/primary" />
+
+        <ImageButton
+            android:id="@+id/btn_settings"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:src="@drawable/ic_settings"
+            android:contentDescription="@string/settings"
+            app:tint="@color/white" />
+
+    </LinearLayout>
+
+    <!-- Hidden barcode input field -->
+    <EditText
+        android:id="@+id/edit_barcode"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:inputType="number"
+        android:imeOptions="actionDone"
+        android:importantForAutofill="no" />
+
+    <!-- Check type selector -->
+    <com.google.android.material.chip.ChipGroup
+        android:id="@+id/chip_group_check_type"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="12dp"
+        app:singleSelection="true"
+        app:selectionRequired="true">
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/chip_morning"
+            style="@style/Widget.MaterialComponents.Chip.Choice"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/check_type_morning" />
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/chip_evening"
+            style="@style/Widget.MaterialComponents.Chip.Choice"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/check_type_evening" />
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/chip_studyhall"
+            style="@style/Widget.MaterialComponents.Chip.Choice"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/check_type_studyhall" />
+
+    </com.google.android.material.chip.ChipGroup>
+
+    <!-- Main result card -->
+    <androidx.cardview.widget.CardView
+        android:id="@+id/card_result"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:layout_margin="16dp"
+        app:cardCornerRadius="16dp"
+        app:cardElevation="4dp">
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:padding="24dp">
+
+            <ImageView
+                android:id="@+id/icon_status"
+                android:layout_width="64dp"
+                android:layout_height="64dp"
+                android:layout_centerHorizontal="true"
+                android:layout_marginTop="32dp"
+                android:src="@drawable/ic_card_scan"
+                android:contentDescription="状态" />
+
+            <TextView
+                android:id="@+id/text_status"
+                style="@style/BigStatusText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/icon_status"
+                android:layout_centerHorizontal="true"
+                android:layout_marginTop="24dp"
+                android:text="@string/checkin_ready" />
+
+            <TextView
+                android:id="@+id/text_student_name"
+                style="@style/StudentNameText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/text_status"
+                android:layout_centerHorizontal="true"
+                android:layout_marginTop="16dp" />
+
+            <TextView
+                android:id="@+id/text_student_info"
+                style="@style/TemperatureText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/text_student_name"
+                android:layout_centerHorizontal="true"
+                android:layout_marginTop="8dp" />
+
+            <ProgressBar
+                android:id="@+id/progress_checkin"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_centerInParent="true"
+                android:visibility="gone" />
+
+        </RelativeLayout>
+
+    </androidx.cardview.widget.CardView>
+
+    <!-- Stats bar -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="16dp"
+        android:background="@color/card_background"
+        android:elevation="4dp">
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/text_stat_checked"
+                style="@style/StatValue"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="0" />
+
+            <TextView
+                style="@style/StatLabel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/stats_checked" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/text_stat_late"
+                style="@style/StatValue"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="0"
+                android:textColor="@color/warning" />
+
+            <TextView
+                style="@style/StatLabel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/stats_late" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/text_stat_fever"
+                style="@style/StatValue"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="0"
+                android:textColor="@color/error" />
+
+            <TextView
+                style="@style/StatLabel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/stats_fever" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/text_stat_queued"
+                style="@style/StatValue"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="0"
+                android:textColor="@color/text_secondary" />
+
+            <TextView
+                style="@style/StatLabel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/stats_queued" />
+
+        </LinearLayout>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_sync"
+            style="@style/Widget.MaterialComponents.Button.TextButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/sync_now"
+            android:visibility="gone" />
+
+    </LinearLayout>
+
+</LinearLayout>
+
+    <!-- Temperature Input Overlay -->
+    <LinearLayout
+        android:id="@+id/overlay_temperature"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:background="@android:color/white"
+        android:gravity="center"
+        android:padding="32dp"
+        android:visibility="gone"
+        android:clickable="true"
+        android:elevation="8dp">
+
+        <TextView
+            android:id="@+id/text_temp_student_name"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="36sp"
+            android:textStyle="bold"
+            android:textColor="@color/text_primary"
+            android:gravity="center"
+            android:layout_marginBottom="8dp" />
+
+        <TextView
+            android:id="@+id/text_temp_student_id"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="20sp"
+            android:fontFamily="monospace"
+            android:textColor="@color/text_secondary"
+            android:gravity="center"
+            android:layout_marginBottom="48dp" />
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="48dp">
+
+            <EditText
+                android:id="@+id/edit_temperature"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:minWidth="200dp"
+                android:textSize="72sp"
+                android:fontFamily="monospace"
+                android:textColor="@color/text_primary"
+                android:gravity="center"
+                android:background="@null"
+                android:inputType="numberDecimal"
+                android:hint="36.5"
+                android:textColorHint="#E0E0E0"
+                android:maxLength="4"
+                android:imeOptions="actionDone" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="°C"
+                android:textSize="32sp"
+                android:textColor="@color/text_secondary"
+                android:layout_marginStart="8dp" />
+
+        </LinearLayout>
+
+        <Button
+            android:id="@+id/btn_temp_confirm"
+            android:layout_width="match_parent"
+            android:layout_height="64dp"
+            android:text="@string/confirm"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="16dp" />
+
+        <Button
+            android:id="@+id/btn_temp_skip"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:text="@string/skip"
+            android:textSize="18sp"
+            style="@style/Widget.Material3.Button.OutlinedButton"
+            android:layout_marginBottom="8dp" />
+
+        <TextView
+            android:id="@+id/btn_temp_cancel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/cancel"
+            android:textSize="16sp"
+            android:textColor="@color/text_secondary"
+            android:padding="12dp"
+            android:clickable="true"
+            android:focusable="true"
+            android:background="?attr/selectableItemBackground" />
+
+    </LinearLayout>
+
+</FrameLayout>

@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">宿舍签到</string>
+    <string name="setup_title">设备配置</string>
+    <string name="setup_server_url">服务器地址</string>
+    <string name="setup_server_url_hint">https://your-server.com</string>
+    <string name="setup_api_key">设备密钥</string>
+    <string name="setup_api_key_hint">dk_xxxxxxxx</string>
+    <string name="setup_connect">连接</string>
+    <string name="setup_connecting">连接中…</string>
+    <string name="setup_success">连接成功</string>
+    <string name="setup_failed">连接失败</string>
+
+    <string name="checkin_ready">刷卡 / 扫码 / 输入学号</string>
+    <string name="checkin_processing">处理中…</string>
+    <string name="checkin_success">签到成功</string>
+    <string name="checkin_late">迟到</string>
+    <string name="checkin_fever">体温异常</string>
+    <string name="checkin_error">签到失败</string>
+    <string name="checkin_unknown_card">未识别的卡片</string>
+    <string name="checkin_network_error">网络错误，已加入队列</string>
+    <string name="checkin_queued">离线签到已缓存: %d 条</string>
+    <string name="checkin_awaiting_temp">请输入体温</string>
+
+    <string name="check_type_morning">晨检</string>
+    <string name="check_type_evening">晚检</string>
+    <string name="check_type_studyhall">晚自习</string>
+
+    <string name="no_nfc">此设备不支持NFC</string>
+    <string name="nfc_disabled">请在设置中开启NFC</string>
+
+    <string name="manual_input">手动输入</string>
+    <string name="manual_input_hint">输入学号 (如 22341)</string>
+    <string name="temp_input_title">输入体温 (°C)</string>
+    <string name="confirm">确认</string>
+    <string name="cancel">取消</string>
+    <string name="skip">跳过</string>
+
+    <string name="stats_checked">已签</string>
+    <string name="stats_late">迟到</string>
+    <string name="stats_fever">发热</string>
+    <string name="stats_queued">队列</string>
+
+    <string name="settings">设置</string>
+    <string name="device_name">设备: %s</string>
+    <string name="sync_now">立即同步</string>
+    <string name="syncing">同步中…</string>
+</resources>
