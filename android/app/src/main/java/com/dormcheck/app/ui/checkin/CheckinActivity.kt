@@ -28,6 +28,7 @@ class CheckinActivity : AppCompatActivity() {
     private lateinit var cardReader: CardReader
 
     private var barcodeBuffer = StringBuilder()
+    private val tempBuffer = StringBuilder()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -144,8 +145,44 @@ class CheckinActivity : AppCompatActivity() {
         binding.btnManualInput.setOnClickListener { showManualInputDialog() }
         binding.btnSettings.setOnClickListener { showSettingsDialog() }
 
+        setupTemperatureKeypad()
+    }
+
+    private fun setupTemperatureKeypad() {
+        val digitClick = { digit: String ->
+            if (tempBuffer.length < 4) {
+                tempBuffer.append(digit)
+                refreshTempDisplay()
+            }
+        }
+
+        binding.btnNum0.setOnClickListener { digitClick("0") }
+        binding.btnNum1.setOnClickListener { digitClick("1") }
+        binding.btnNum2.setOnClickListener { digitClick("2") }
+        binding.btnNum3.setOnClickListener { digitClick("3") }
+        binding.btnNum4.setOnClickListener { digitClick("4") }
+        binding.btnNum5.setOnClickListener { digitClick("5") }
+        binding.btnNum6.setOnClickListener { digitClick("6") }
+        binding.btnNum7.setOnClickListener { digitClick("7") }
+        binding.btnNum8.setOnClickListener { digitClick("8") }
+        binding.btnNum9.setOnClickListener { digitClick("9") }
+
+        binding.btnNumDot.setOnClickListener {
+            if (!tempBuffer.contains(".") && tempBuffer.isNotEmpty() && tempBuffer.length < 4) {
+                tempBuffer.append(".")
+                refreshTempDisplay()
+            }
+        }
+
+        binding.btnNumBack.setOnClickListener {
+            if (tempBuffer.isNotEmpty()) {
+                tempBuffer.deleteCharAt(tempBuffer.length - 1)
+                refreshTempDisplay()
+            }
+        }
+
         binding.btnTempConfirm.setOnClickListener {
-            val temp = binding.editTemperature.text.toString().toFloatOrNull()
+            val temp = tempBuffer.toString().toFloatOrNull()
             if (temp != null && temp in 34.0f..42.0f) {
                 hideTemperatureOverlay()
                 viewModel.submitTemperature(temp)
@@ -154,22 +191,18 @@ class CheckinActivity : AppCompatActivity() {
             }
         }
 
-        binding.btnTempSkip.setOnClickListener {
-            hideTemperatureOverlay()
-            viewModel.submitTemperature(null)
-        }
-
         binding.btnTempCancel.setOnClickListener {
             hideTemperatureOverlay()
             viewModel.cancelTemperatureInput()
         }
+    }
 
-        binding.editTemperature.setOnEditorActionListener { _, actionId, _ ->
-            if (actionId == EditorInfo.IME_ACTION_DONE) {
-                binding.btnTempConfirm.performClick()
-                true
-            } else false
-        }
+    private fun refreshTempDisplay() {
+        binding.textTempDisplay.text = if (tempBuffer.isEmpty()) "--.-" else tempBuffer.toString()
+        binding.textTempDisplay.setTextColor(
+            if (tempBuffer.isEmpty()) getColor(R.color.text_secondary)
+            else getColor(R.color.text_primary)
+        )
     }
 
     private fun observeState() {
@@ -240,24 +273,18 @@ class CheckinActivity : AppCompatActivity() {
             binding.textTempStudentId.visibility = View.GONE
         }
 
-        binding.editTemperature.setText("")
+        tempBuffer.clear()
+        refreshTempDisplay()
         binding.overlayTemperature.visibility = View.VISIBLE
         binding.overlayTemperature.alpha = 0f
         binding.overlayTemperature.animate().alpha(1f).setDuration(150).start()
-
-        binding.editTemperature.post {
-            binding.editTemperature.requestFocus()
-            val imm = getSystemService(INPUT_METHOD_SERVICE) as android.view.inputmethod.InputMethodManager
-            imm.showSoftInput(binding.editTemperature, android.view.inputmethod.InputMethodManager.SHOW_IMPLICIT)
-        }
     }
 
     private fun hideTemperatureOverlay() {
-        val imm = getSystemService(INPUT_METHOD_SERVICE) as android.view.inputmethod.InputMethodManager
-        imm.hideSoftInputFromWindow(binding.editTemperature.windowToken, 0)
-        binding.editTemperature.setText("")
+        tempBuffer.clear()
         binding.overlayTemperature.animate().alpha(0f).setDuration(120).withEndAction {
             binding.overlayTemperature.visibility = View.GONE
+            refreshTempDisplay()
         }.start()
     }
 
