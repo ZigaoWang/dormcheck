@@ -104,7 +104,7 @@ class CheckinViewModel : ViewModel() {
                 uid != null -> repository.checkin(uid, temperature)
                 studentId != null -> repository.checkinByStudentId(studentId, temperature)
                 else -> {
-                    _state.value = CheckinResult.Error("无法识别学生")
+                    _state.value = CheckinResult.Error("Unable to identify student")
                     return@launch
                 }
             }
@@ -177,7 +177,7 @@ class CheckinViewModel : ViewModel() {
                 val uid = pendingUid
                 _state.value = CheckinResult.AwaitingTemperature(uid = uid, studentId = studentId, name = name)
             } else {
-                _state.value = CheckinResult.Error("添加学生失败")
+                _state.value = CheckinResult.Error("Failed to add student")
                 scheduleReset()
             }
         }

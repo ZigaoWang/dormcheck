@@ -62,10 +62,10 @@ class CheckinActivity : AppCompatActivity() {
         if (!cardReader.isEnabled) {
             AlertDialog.Builder(this)
                 .setMessage(R.string.nfc_disabled)
-                .setPositiveButton("设置") { _, _ ->
+                .setPositiveButton("Settings") { _, _ ->
                     startActivity(Intent(Settings.ACTION_NFC_SETTINGS))
                 }
-                .setNegativeButton("取消", null)
+                .setNegativeButton("Cancel", null)
                 .show()
         }
 
@@ -139,9 +139,9 @@ class CheckinActivity : AppCompatActivity() {
 
     private fun triggerThermometerRead() {
         if (!thermometerAvailable) return
-        binding.textTempStatus.text = "测量中…"
+        binding.textTempStatus.text = "Measuring…"
         binding.textTempStatus.setTextColor(getColor(R.color.primary))
-        binding.textTempHint.text = "正在读取…"
+        binding.textTempHint.text = "Reading…"
 
         val temp = thermometer.readOnce()
         if (temp != null) {
@@ -150,8 +150,8 @@ class CheckinActivity : AppCompatActivity() {
             refreshTempDisplay()
             FeedbackHelper.success(this)
         } else {
-            binding.textTempHint.text = "未检测到体温，请重试"
-            binding.textTempStatus.text = "读取失败"
+            binding.textTempHint.text = "No reading detected, try again"
+            binding.textTempStatus.text = "Read failed"
             binding.textTempStatus.setTextColor(getColor(R.color.warning))
             FeedbackHelper.warning(this)
         }
@@ -228,7 +228,7 @@ class CheckinActivity : AppCompatActivity() {
                 hideTemperatureOverlay()
                 viewModel.submitTemperature(temp)
             } else {
-                Toast.makeText(this, "请输入有效体温 (34.0-42.0)", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Enter a valid temperature (34.0-42.0)", Toast.LENGTH_SHORT).show()
             }
         }
 
@@ -241,8 +241,8 @@ class CheckinActivity : AppCompatActivity() {
             thermometer.stopPolling()
             tempBuffer.clear()
             binding.gridNumpad.visibility = View.VISIBLE
-            binding.textTempHint.text = "手动输入体温"
-            binding.textTempStatus.text = "请输入体温"
+            binding.textTempHint.text = "Enter manually"
+            binding.textTempStatus.text = "Enter temperature"
             binding.textTempStatus.setTextColor(getColor(R.color.text_secondary))
             refreshTempDisplay()
         }
@@ -258,26 +258,26 @@ class CheckinActivity : AppCompatActivity() {
             when {
                 temp >= 37.3f -> {
                     binding.textTempDisplay.setTextColor(getColor(R.color.error))
-                    binding.textTempStatus.text = "体温异常"
+                    binding.textTempStatus.text = "Fever"
                     binding.textTempStatus.setTextColor(getColor(R.color.error))
                     binding.layoutTempReading.setBackgroundColor(getColor(R.color.error_light))
                 }
                 temp >= 37.0f -> {
                     binding.textTempDisplay.setTextColor(getColor(R.color.warning))
-                    binding.textTempStatus.text = "体温偏高"
+                    binding.textTempStatus.text = "Elevated"
                     binding.textTempStatus.setTextColor(getColor(R.color.warning))
                     binding.layoutTempReading.setBackgroundColor(getColor(R.color.warning_light))
                 }
                 else -> {
                     binding.textTempDisplay.setTextColor(getColor(R.color.success))
-                    binding.textTempStatus.text = "体温正常"
+                    binding.textTempStatus.text = "Normal"
                     binding.textTempStatus.setTextColor(getColor(R.color.success))
                     binding.layoutTempReading.setBackgroundColor(getColor(R.color.success_light))
                 }
             }
         } else {
             binding.textTempDisplay.setTextColor(getColor(R.color.text_secondary))
-            binding.textTempStatus.text = if (thermometerAvailable) "测量中…" else "请输入体温"
+            binding.textTempStatus.text = if (thermometerAvailable) "Measuring…" else "Enter temperature"
             binding.textTempStatus.setTextColor(getColor(R.color.text_secondary))
             binding.layoutTempReading.setBackgroundColor(getColor(R.color.card_background))
         }
@@ -359,11 +359,11 @@ class CheckinActivity : AppCompatActivity() {
         if (thermometerAvailable) {
             binding.gridNumpad.visibility = View.GONE
             binding.btnTempManual.visibility = View.VISIBLE
-            binding.textTempHint.text = "按扫描键测量体温"
+            binding.textTempHint.text = "Press scan key to measure"
         } else {
             binding.gridNumpad.visibility = View.VISIBLE
             binding.btnTempManual.visibility = View.GONE
-            binding.textTempHint.text = "手动输入体温"
+            binding.textTempHint.text = "Enter manually"
         }
 
         binding.overlayTemperature.visibility = View.VISIBLE
@@ -427,10 +427,10 @@ class CheckinActivity : AppCompatActivity() {
         FeedbackHelper.warning(this)
         binding.progressCheckin.visibility = View.GONE
         binding.cardResult.setCardBackgroundColor(getColor(R.color.warning_light))
-        binding.textStatus.text = "学生不存在"
+        binding.textStatus.text = "Student not found"
         binding.textStatus.setTextColor(getColor(R.color.warning))
         binding.textStudentName.text = result.studentId
-        binding.textStudentInfo.text = "点击添加学生"
+        binding.textStudentInfo.text = "Tap to add student"
         binding.iconStatus.setImageResource(R.drawable.ic_warning)
 
         binding.cardResult.setOnClickListener {
@@ -445,14 +445,14 @@ class CheckinActivity : AppCompatActivity() {
         }
 
         val nameInput = EditText(this).apply {
-            hint = "姓名"
+            hint = "Name"
             setPadding(24, 24, 24, 24)
             textSize = 18f
         }
         layout.addView(nameInput)
 
         val gradeInput = EditText(this).apply {
-            hint = "年级 (如 9, 10, 11, 12)"
+            hint = "Grade (e.g. 9, 10, 11, 12)"
             setPadding(24, 24, 24, 24)
             textSize = 18f
             inputType = android.text.InputType.TYPE_CLASS_NUMBER
@@ -460,20 +460,20 @@ class CheckinActivity : AppCompatActivity() {
         layout.addView(gradeInput)
 
         AlertDialog.Builder(this)
-            .setTitle("添加学生")
-            .setMessage("学号: $studentId")
+            .setTitle("Add Student")
+            .setMessage("Student ID: $studentId")
             .setView(layout)
-            .setPositiveButton("添加") { _, _ ->
+            .setPositiveButton("Add") { _, _ ->
                 val name = nameInput.text.toString().trim()
                 val grade = gradeInput.text.toString().trim().toIntOrNull()
                 if (name.isNotBlank() && grade != null && grade in 7..12) {
                     binding.cardResult.setOnClickListener(null)
                     viewModel.createStudentAndProceed(studentId, name, grade)
                 } else {
-                    Toast.makeText(this, "请输入有效的姓名和年级", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, "Enter a valid name and grade", Toast.LENGTH_SHORT).show()
                 }
             }
-            .setNegativeButton("取消") { _, _ ->
+            .setNegativeButton("Cancel") { _, _ ->
                 binding.cardResult.setOnClickListener(null)
                 viewModel.dismissStudentNotFound()
             }
@@ -485,10 +485,10 @@ class CheckinActivity : AppCompatActivity() {
         FeedbackHelper.warning(this)
         binding.progressCheckin.visibility = View.GONE
         binding.cardResult.setCardBackgroundColor(getColor(R.color.warning_light))
-        binding.textStatus.text = "未绑定卡片"
+        binding.textStatus.text = "Unbound card"
         binding.textStatus.setTextColor(getColor(R.color.warning))
         binding.textStudentName.text = "UID: ${result.uid}"
-        binding.textStudentInfo.text = "点击屏幕绑定学生"
+        binding.textStudentInfo.text = "Tap to bind student"
         binding.iconStatus.setImageResource(R.drawable.ic_warning)
 
         binding.cardResult.setOnClickListener {
@@ -498,24 +498,24 @@ class CheckinActivity : AppCompatActivity() {
 
     private fun showBindDialog(uid: String) {
         val input = EditText(this).apply {
-            hint = "输入学号 (如 22341)"
+            hint = "Enter student ID (e.g. 22341)"
             setPadding(48, 32, 48, 32)
             textSize = 18f
             inputType = android.text.InputType.TYPE_CLASS_NUMBER
         }
 
         AlertDialog.Builder(this)
-            .setTitle("绑定卡片")
-            .setMessage("卡片 UID: $uid\n请输入该学生的学号:")
+            .setTitle("Bind Card")
+            .setMessage("Card UID: $uid\nEnter the student ID:")
             .setView(input)
-            .setPositiveButton("绑定并签到") { _, _ ->
+            .setPositiveButton("Bind & Check In") { _, _ ->
                 val studentId = input.text.toString().trim()
                 if (studentId.isNotBlank()) {
                     binding.cardResult.setOnClickListener(null)
                     viewModel.bindCard(studentId)
                 }
             }
-            .setNegativeButton("取消") { _, _ ->
+            .setNegativeButton("Cancel") { _, _ ->
                 binding.cardResult.setOnClickListener(null)
                 viewModel.dismissUnknownCard()
             }
@@ -525,22 +525,22 @@ class CheckinActivity : AppCompatActivity() {
 
     private fun showManualInputDialog() {
         val input = EditText(this).apply {
-            hint = "输入学号 (如 22341)"
+            hint = "Enter student ID (e.g. 22341)"
             setPadding(48, 32, 48, 32)
             textSize = 24f
             inputType = android.text.InputType.TYPE_CLASS_NUMBER
         }
 
         AlertDialog.Builder(this)
-            .setTitle("手动输入学号")
+            .setTitle("Enter Student ID")
             .setView(input)
-            .setPositiveButton("确认") { _, _ ->
+            .setPositiveButton("Confirm") { _, _ ->
                 val studentId = input.text.toString().trim()
                 if (studentId.isNotBlank()) {
                     viewModel.onStudentIdEntered(studentId)
                 }
             }
-            .setNegativeButton("取消", null)
+            .setNegativeButton("Cancel", null)
             .show()
     }
 
@@ -557,13 +557,13 @@ class CheckinActivity : AppCompatActivity() {
 
     private fun buildStudentInfo(grade: Int?, studentId: String?): String {
         val parts = mutableListOf<String>()
-        grade?.let { parts.add("${it}年级") }
+        grade?.let { parts.add("Grade ${it}") }
         studentId?.let { parts.add(it) }
         return parts.joinToString(" · ")
     }
 
     private fun showSettingsDialog() {
-        val items = arrayOf("重新配置设备", "关于")
+        val items = arrayOf("Reconfigure Device", "About")
         AlertDialog.Builder(this)
             .setTitle(R.string.settings)
             .setItems(items) { _, which ->
@@ -575,9 +575,9 @@ class CheckinActivity : AppCompatActivity() {
                     }
                     1 -> {
                         AlertDialog.Builder(this)
-                            .setTitle("宿舍签到 v1.0.0")
-                            .setMessage("Urovo i6310 PDA\n晨检/晚检签到系统")
-                            .setPositiveButton("确定", null)
+                            .setTitle("DormCheck v1.0.0")
+                            .setMessage("Urovo i6310 PDA\nMorning/Evening Check-in System")
+                            .setPositiveButton("OK", null)
                             .show()
                     }
                 }

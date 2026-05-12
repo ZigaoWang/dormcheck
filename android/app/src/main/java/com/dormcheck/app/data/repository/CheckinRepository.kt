@@ -51,13 +51,13 @@ class CheckinRepository(
                             else -> CheckinResult.Success(body)
                         }
                     } else {
-                        CheckinResult.Error(body?.error ?: body?.message ?: "未知错误")
+                        CheckinResult.Error(body?.error ?: body?.message ?: "Unknown error")
                     }
                 } else {
                     val errorMsg = when (response.code()) {
-                        404 -> "未识别的卡片"
-                        401 -> "设备密钥无效"
-                        else -> "服务器错误 (${response.code()})"
+                        404 -> "Card not recognized"
+                        401 -> "Invalid device key"
+                        else -> "Server error (${response.code()})"
                     }
                     if (response.code() == 404) {
                         CheckinResult.UnknownCard(uid)
@@ -143,13 +143,13 @@ class CheckinRepository(
                             else -> CheckinResult.Success(body)
                         }
                     } else {
-                        CheckinResult.Error(body?.error ?: body?.message ?: "未知错误")
+                        CheckinResult.Error(body?.error ?: body?.message ?: "Unknown error")
                     }
                 } else {
-                    CheckinResult.Error("签到失败 (${response.code()})")
+                    CheckinResult.Error("Check-in failed (${response.code()})")
                 }
             } catch (e: Exception) {
-                CheckinResult.Error("网络错误: ${e.localizedMessage}")
+                CheckinResult.Error("Network error: ${e.localizedMessage}")
             }
         }
     }
@@ -176,13 +176,13 @@ class CheckinRepository(
                             else -> CheckinResult.Success(body)
                         }
                     } else {
-                        CheckinResult.Error(body?.error ?: body?.message ?: "未知错误")
+                        CheckinResult.Error(body?.error ?: body?.message ?: "Unknown error")
                     }
                 } else {
-                    CheckinResult.Error("绑定失败 (${response.code()})")
+                    CheckinResult.Error("Bind failed (${response.code()})")
                 }
             } catch (e: Exception) {
-                CheckinResult.Error("网络错误: ${e.localizedMessage}")
+                CheckinResult.Error("Network error: ${e.localizedMessage}")
             }
         }
     }

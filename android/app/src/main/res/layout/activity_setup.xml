@@ -17,7 +17,7 @@
             android:layout_height="80dp"
             android:layout_marginTop="48dp"
             android:src="@drawable/ic_device_setup"
-            android:contentDescription="设备配置" />
+            android:contentDescription="Device setup" />
 
         <TextView
             android:layout_width="wrap_content"
@@ -32,7 +32,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:text="连接到宿舍签到服务器"
+            android:text="Connect to the DormCheck server"
             android:textSize="14sp"
             android:textColor="@color/text_secondary" />
 

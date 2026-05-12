@@ -113,7 +113,7 @@
                 android:layout_centerHorizontal="true"
                 android:layout_marginTop="32dp"
                 android:src="@drawable/ic_card_scan"
-                android:contentDescription="状态" />
+                android:contentDescription="Status" />
 
             <TextView
                 android:id="@+id/text_status"
@@ -321,7 +321,7 @@
                 android:id="@+id/text_temp_status"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="测量中…"
+                android:text="Measuring…"
                 android:textSize="18sp"
                 android:textColor="@color/text_secondary"
                 android:layout_marginBottom="16dp" />
@@ -360,7 +360,7 @@
                 android:id="@+id/text_temp_hint"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="请将体温计对准额头"
+                android:text="Point thermometer at forehead"
                 android:textSize="14sp"
                 android:textColor="@color/text_secondary"
                 android:layout_marginTop="16dp" />
@@ -468,7 +468,7 @@
                 android:layout_width="0dp"
                 android:layout_height="52dp"
                 android:layout_weight="1"
-                android:text="手动输入"
+                android:text="Manual"
                 android:textSize="16sp"
                 android:textColor="@color/primary"
                 android:layout_marginStart="6dp"

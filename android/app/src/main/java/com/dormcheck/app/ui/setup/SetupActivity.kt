@@ -44,11 +44,11 @@ class SetupActivity : AppCompatActivity() {
         val key = binding.inputApiKey.text.toString().trim()
 
         if (url.isBlank()) {
-            binding.inputServerUrl.error = "请输入服务器地址"
+            binding.inputServerUrl.error = "Please enter server URL"
             return
         }
         if (key.isBlank()) {
-            binding.inputApiKey.error = "请输入设备密钥"
+            binding.inputApiKey.error = "Please enter device key"
             return
         }
 
@@ -75,12 +75,12 @@ class SetupActivity : AppCompatActivity() {
                     Toast.makeText(this@SetupActivity, R.string.setup_success, Toast.LENGTH_SHORT).show()
                     navigateToCheckin()
                 } else {
-                    val error = response.body()?.message ?: "验证失败 (${response.code()})"
+                    val error = response.body()?.message ?: "Verification failed (${response.code()})"
                     binding.textError.text = error
                     binding.textError.visibility = View.VISIBLE
                 }
             } catch (e: Exception) {
-                binding.textError.text = "连接失败: ${e.localizedMessage}"
+                binding.textError.text = "Connection failed: ${e.localizedMessage}"
                 binding.textError.visibility = View.VISIBLE
             } finally {
                 setLoading(false)

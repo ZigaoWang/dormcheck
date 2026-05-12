@@ -1,9 +1,9 @@
 package com.dormcheck.app.domain.model
 
 enum class CheckType(val value: String, val displayName: String) {
-    MORNING("morning", "晨检"),
-    EVENING("evening", "晚检"),
-    STUDYHALL("studyhall", "晚自习");
+    MORNING("morning", "Morning"),
+    EVENING("evening", "Evening"),
+    STUDYHALL("studyhall", "Study Hall");
 
     companion object {
         fun fromValue(value: String): CheckType {
