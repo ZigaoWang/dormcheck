@@ -164,7 +164,6 @@ class CheckinActivity : AppCompatActivity() {
         binding.chipGroupCheckType.setOnCheckedChangeListener { _, checkedId ->
             val type = when (checkedId) {
                 R.id.chip_morning -> CheckType.MORNING
-                R.id.chip_evening -> CheckType.EVENING
                 R.id.chip_studyhall -> CheckType.STUDYHALL
                 else -> return@setOnCheckedChangeListener
             }
@@ -173,7 +172,6 @@ class CheckinActivity : AppCompatActivity() {
 
         when (viewModel.checkType.value) {
             CheckType.MORNING -> binding.chipMorning.isChecked = true
-            CheckType.EVENING -> binding.chipEvening.isChecked = true
             CheckType.STUDYHALL -> binding.chipStudyhall.isChecked = true
             else -> binding.chipMorning.isChecked = true
         }

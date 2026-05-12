@@ -23,7 +23,6 @@
     <string name="checkin_awaiting_temp">Enter temperature</string>
 
     <string name="check_type_morning">Morning</string>
-    <string name="check_type_evening">Evening</string>
     <string name="check_type_studyhall">Study Hall</string>
 
     <string name="no_nfc">NFC not supported on this device</string>
