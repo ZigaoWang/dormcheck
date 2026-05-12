@@ -266,79 +266,117 @@
 
 </LinearLayout>
 
-    <!-- Temperature Input Overlay -->
+    <!-- Temperature Measurement Overlay -->
     <LinearLayout
         android:id="@+id/overlay_temperature"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical"
         android:background="@color/card_background"
-        android:paddingStart="16dp"
-        android:paddingEnd="16dp"
-        android:paddingTop="12dp"
-        android:paddingBottom="12dp"
         android:visibility="gone"
         android:clickable="true"
         android:elevation="8dp">
 
-        <TextView
-            android:id="@+id/text_temp_student_name"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:textSize="28sp"
-            android:textStyle="bold"
-            android:textColor="@color/text_primary"
-            android:gravity="center"
-            android:layout_marginTop="8dp" />
-
-        <TextView
-            android:id="@+id/text_temp_student_id"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:textSize="16sp"
-            android:fontFamily="monospace"
-            android:textColor="@color/text_secondary"
-            android:gravity="center"
-            android:layout_marginBottom="12dp" />
-
+        <!-- Student info header -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center"
-            android:layout_marginBottom="12dp"
-            android:background="@color/background"
-            android:padding="12dp">
+            android:orientation="vertical"
+            android:background="@color/primary"
+            android:padding="16dp"
+            android:gravity="center">
 
             <TextView
-                android:id="@+id/text_temp_display"
-                android:layout_width="wrap_content"
+                android:id="@+id/text_temp_student_name"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:minWidth="140dp"
-                android:textSize="48sp"
+                android:textSize="24sp"
+                android:textStyle="bold"
+                android:textColor="@color/white"
+                android:gravity="center" />
+
+            <TextView
+                android:id="@+id/text_temp_student_id"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textSize="14sp"
                 android:fontFamily="monospace"
-                android:textColor="@color/text_primary"
+                android:textColor="#B3FFFFFF"
                 android:gravity="center"
-                android:text="--.-" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="°C"
-                android:textSize="20sp"
-                android:textColor="@color/text_secondary"
-                android:layout_gravity="bottom"
-                android:layout_marginStart="4dp"
-                android:layout_marginBottom="8dp" />
+                android:visibility="gone" />
 
         </LinearLayout>
 
-        <GridLayout
+        <!-- Temperature measurement area -->
+        <LinearLayout
+            android:id="@+id/layout_temp_reading"
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_weight="1"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:padding="24dp">
+
+            <TextView
+                android:id="@+id/text_temp_status"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="测量中…"
+                android:textSize="18sp"
+                android:textColor="@color/text_secondary"
+                android:layout_marginBottom="16dp" />
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+                <TextView
+                    android:id="@+id/text_temp_display"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:minWidth="180dp"
+                    android:textSize="72sp"
+                    android:fontFamily="monospace"
+                    android:textStyle="bold"
+                    android:textColor="@color/text_secondary"
+                    android:gravity="center"
+                    android:text="--.-" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="°C"
+                    android:textSize="28sp"
+                    android:textColor="@color/text_secondary"
+                    android:layout_gravity="top"
+                    android:layout_marginStart="4dp"
+                    android:layout_marginTop="12dp" />
+
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/text_temp_hint"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="请将体温计对准额头"
+                android:textSize="14sp"
+                android:textColor="@color/text_secondary"
+                android:layout_marginTop="16dp" />
+
+        </LinearLayout>
+
+        <!-- Manual numpad (hidden when thermometer is active) -->
+        <GridLayout
+            android:id="@+id/grid_numpad"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
             android:columnCount="3"
-            android:rowCount="4">
+            android:rowCount="4"
+            android:visibility="gone">
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btn_num_1"
@@ -402,11 +440,12 @@
 
         </GridLayout>
 
+        <!-- Bottom buttons -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:layout_marginTop="8dp">
+            android:padding="12dp">
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btn_temp_cancel"
@@ -424,10 +463,26 @@
                 app:strokeColor="@color/divider" />
 
             <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_temp_manual"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="0dp"
+                android:layout_height="52dp"
+                android:layout_weight="1"
+                android:text="手动输入"
+                android:textSize="16sp"
+                android:textColor="@color/primary"
+                android:layout_marginStart="6dp"
+                android:layout_marginEnd="6dp"
+                android:insetTop="0dp"
+                android:insetBottom="0dp"
+                app:cornerRadius="12dp"
+                app:strokeColor="@color/primary" />
+
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/btn_temp_confirm"
                 android:layout_width="0dp"
                 android:layout_height="52dp"
-                android:layout_weight="2"
+                android:layout_weight="1"
                 android:text="@string/confirm"
                 android:textSize="16sp"
                 android:textStyle="bold"

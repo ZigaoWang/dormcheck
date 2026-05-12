@@ -8,7 +8,8 @@
 .externalNativeBuild
 .cxx
 /app/build
-/app/libs
+/app/libs/*
+!/app/libs/tempOtgUtils-v3.aar
 *.apk
 *.ap_
 *.dex

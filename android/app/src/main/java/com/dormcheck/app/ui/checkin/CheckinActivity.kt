@@ -16,6 +16,7 @@ import com.dormcheck.app.DormCheckApp
 import com.dormcheck.app.R
 import com.dormcheck.app.databinding.ActivityCheckinBinding
 import com.dormcheck.app.device.nfc.CardReader
+import com.dormcheck.app.device.thermometer.ThermometerManager
 import com.dormcheck.app.domain.model.CheckType
 import com.dormcheck.app.domain.model.CheckinResult
 import com.dormcheck.app.ui.setup.SetupActivity
@@ -26,9 +27,11 @@ class CheckinActivity : AppCompatActivity() {
     private lateinit var binding: ActivityCheckinBinding
     private lateinit var viewModel: CheckinViewModel
     private lateinit var cardReader: CardReader
+    private lateinit var thermometer: ThermometerManager
 
     private var barcodeBuffer = StringBuilder()
     private val tempBuffer = StringBuilder()
+    private var thermometerAvailable = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -39,6 +42,7 @@ class CheckinActivity : AppCompatActivity() {
 
         FeedbackHelper.init()
         setupCardReader()
+        setupThermometer()
         setupBarcodeInput()
         setupUI()
         observeState()
@@ -72,6 +76,11 @@ class CheckinActivity : AppCompatActivity() {
         }
     }
 
+    private fun setupThermometer() {
+        thermometer = ThermometerManager()
+        thermometerAvailable = thermometer.open()
+    }
+
     private fun setupBarcodeInput() {
         binding.editBarcode.setOnEditorActionListener { _, actionId, _ ->
             if (actionId == EditorInfo.IME_ACTION_DONE) {
@@ -98,6 +107,10 @@ class CheckinActivity : AppCompatActivity() {
 
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {
         if (binding.overlayTemperature.visibility == View.VISIBLE) {
+            if (event.action == KeyEvent.ACTION_DOWN && isScanKey(event.keyCode)) {
+                triggerThermometerRead()
+                return true
+            }
             return super.dispatchKeyEvent(event)
         }
 
@@ -114,6 +127,34 @@ class CheckinActivity : AppCompatActivity() {
             }
         }
         return super.dispatchKeyEvent(event)
+    }
+
+    private fun isScanKey(keyCode: Int): Boolean {
+        return keyCode == KeyEvent.KEYCODE_F1 ||
+                keyCode == KeyEvent.KEYCODE_F2 ||
+                keyCode == KeyEvent.KEYCODE_F3 ||
+                keyCode == KEYCODE_SCAN_LEFT ||
+                keyCode == KEYCODE_SCAN_RIGHT
+    }
+
+    private fun triggerThermometerRead() {
+        if (!thermometerAvailable) return
+        binding.textTempStatus.text = "测量中…"
+        binding.textTempStatus.setTextColor(getColor(R.color.primary))
+        binding.textTempHint.text = "正在读取…"
+
+        val temp = thermometer.readOnce()
+        if (temp != null) {
+            tempBuffer.clear()
+            tempBuffer.append(String.format("%.1f", temp))
+            refreshTempDisplay()
+            FeedbackHelper.success(this)
+        } else {
+            binding.textTempHint.text = "未检测到体温，请重试"
+            binding.textTempStatus.text = "读取失败"
+            binding.textTempStatus.setTextColor(getColor(R.color.warning))
+            FeedbackHelper.warning(this)
+        }
     }
 
     private fun setupUI() {
@@ -195,14 +236,51 @@ class CheckinActivity : AppCompatActivity() {
             hideTemperatureOverlay()
             viewModel.cancelTemperatureInput()
         }
+
+        binding.btnTempManual.setOnClickListener {
+            thermometer.stopPolling()
+            tempBuffer.clear()
+            binding.gridNumpad.visibility = View.VISIBLE
+            binding.textTempHint.text = "手动输入体温"
+            binding.textTempStatus.text = "请输入体温"
+            binding.textTempStatus.setTextColor(getColor(R.color.text_secondary))
+            refreshTempDisplay()
+        }
     }
 
     private fun refreshTempDisplay() {
-        binding.textTempDisplay.text = if (tempBuffer.isEmpty()) "--.-" else tempBuffer.toString()
-        binding.textTempDisplay.setTextColor(
-            if (tempBuffer.isEmpty()) getColor(R.color.text_secondary)
-            else getColor(R.color.text_primary)
-        )
+        val tempStr = tempBuffer.toString()
+        val temp = tempStr.toFloatOrNull()
+
+        binding.textTempDisplay.text = if (tempBuffer.isEmpty()) "--.-" else tempStr
+
+        if (temp != null && temp in 34.0f..42.0f) {
+            when {
+                temp >= 37.3f -> {
+                    binding.textTempDisplay.setTextColor(getColor(R.color.error))
+                    binding.textTempStatus.text = "体温异常"
+                    binding.textTempStatus.setTextColor(getColor(R.color.error))
+                    binding.layoutTempReading.setBackgroundColor(getColor(R.color.error_light))
+                }
+                temp >= 37.0f -> {
+                    binding.textTempDisplay.setTextColor(getColor(R.color.warning))
+                    binding.textTempStatus.text = "体温偏高"
+                    binding.textTempStatus.setTextColor(getColor(R.color.warning))
+                    binding.layoutTempReading.setBackgroundColor(getColor(R.color.warning_light))
+                }
+                else -> {
+                    binding.textTempDisplay.setTextColor(getColor(R.color.success))
+                    binding.textTempStatus.text = "体温正常"
+                    binding.textTempStatus.setTextColor(getColor(R.color.success))
+                    binding.layoutTempReading.setBackgroundColor(getColor(R.color.success_light))
+                }
+            }
+        } else {
+            binding.textTempDisplay.setTextColor(getColor(R.color.text_secondary))
+            binding.textTempStatus.text = if (thermometerAvailable) "测量中…" else "请输入体温"
+            binding.textTempStatus.setTextColor(getColor(R.color.text_secondary))
+            binding.layoutTempReading.setBackgroundColor(getColor(R.color.card_background))
+        }
     }
 
     private fun observeState() {
@@ -275,7 +353,19 @@ class CheckinActivity : AppCompatActivity() {
         }
 
         tempBuffer.clear()
+        binding.layoutTempReading.setBackgroundColor(getColor(R.color.card_background))
         refreshTempDisplay()
+
+        if (thermometerAvailable) {
+            binding.gridNumpad.visibility = View.GONE
+            binding.btnTempManual.visibility = View.VISIBLE
+            binding.textTempHint.text = "按扫描键测量体温"
+        } else {
+            binding.gridNumpad.visibility = View.VISIBLE
+            binding.btnTempManual.visibility = View.GONE
+            binding.textTempHint.text = "手动输入体温"
+        }
+
         binding.overlayTemperature.visibility = View.VISIBLE
         binding.overlayTemperature.alpha = 0f
         binding.overlayTemperature.animate().alpha(1f).setDuration(150).start()
@@ -513,6 +603,12 @@ class CheckinActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
+        thermometer.release()
         FeedbackHelper.release()
+    }
+
+    companion object {
+        private const val KEYCODE_SCAN_LEFT = 520
+        private const val KEYCODE_SCAN_RIGHT = 521
     }
 }
