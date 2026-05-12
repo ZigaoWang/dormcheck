@@ -4,6 +4,7 @@ sealed class CheckinResult {
     object Idle : CheckinResult()
     object Processing : CheckinResult()
     data class AwaitingTemperature(val uid: String? = null, val studentId: String? = null, val name: String? = null) : CheckinResult()
+    data class StudentNotFound(val studentId: String, val uid: String? = null) : CheckinResult()
     data class Success(val response: CheckinResponse) : CheckinResult()
     data class Late(val response: CheckinResponse) : CheckinResult()
     data class Fever(val response: CheckinResponse) : CheckinResult()

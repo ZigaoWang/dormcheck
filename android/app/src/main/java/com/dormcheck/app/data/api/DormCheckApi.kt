@@ -2,6 +2,8 @@ package com.dormcheck.app.data.api
 
 import com.dormcheck.app.domain.model.CheckinRequest
 import com.dormcheck.app.domain.model.CheckinResponse
+import com.dormcheck.app.domain.model.CreateStudentRequest
+import com.dormcheck.app.domain.model.CreateStudentResponse
 import com.dormcheck.app.domain.model.DeviceVerifyRequest
 import com.dormcheck.app.domain.model.DeviceVerifyResponse
 import com.dormcheck.app.domain.model.StudentInfo
@@ -31,4 +33,10 @@ interface DormCheckApi {
         @Query("uid") uid: String? = null,
         @Query("student_id") studentId: String? = null
     ): Response<StudentInfo>
+
+    @POST("/api/students/create")
+    suspend fun createStudent(
+        @Header("X-Device-API-Key") apiKey: String,
+        @Body request: CreateStudentRequest
+    ): Response<CreateStudentResponse>
 }

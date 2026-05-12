@@ -83,7 +83,7 @@ class CheckinViewModel : ViewModel() {
             if (studentInfo != null) {
                 _state.value = studentInfo
             } else {
-                _state.value = CheckinResult.AwaitingTemperature(studentId = studentId)
+                _state.value = CheckinResult.StudentNotFound(studentId = studentId)
             }
         }
     }
@@ -154,7 +154,40 @@ class CheckinViewModel : ViewModel() {
         isBindFlow = true
         pendingUid = uid
         pendingStudentId = studentId
-        _state.value = CheckinResult.AwaitingTemperature(uid = uid, studentId = studentId)
+
+        _state.value = CheckinResult.Processing
+
+        viewModelScope.launch {
+            val studentInfo = repository.lookupStudent(studentId = studentId)
+            if (studentInfo != null) {
+                _state.value = CheckinResult.AwaitingTemperature(uid = uid, studentId = studentId, name = studentInfo.name)
+            } else {
+                _state.value = CheckinResult.StudentNotFound(studentId = studentId, uid = uid)
+            }
+        }
+    }
+
+    fun createStudentAndProceed(studentId: String, name: String, grade: Int) {
+        _state.value = CheckinResult.Processing
+
+        viewModelScope.launch {
+            val created = repository.createStudent(studentId, name, grade)
+            if (created) {
+                pendingStudentId = studentId
+                val uid = pendingUid
+                _state.value = CheckinResult.AwaitingTemperature(uid = uid, studentId = studentId, name = name)
+            } else {
+                _state.value = CheckinResult.Error("添加学生失败")
+                scheduleReset()
+            }
+        }
+    }
+
+    fun dismissStudentNotFound() {
+        pendingUid = null
+        pendingStudentId = null
+        isBindFlow = false
+        _state.value = CheckinResult.Idle
     }
 
     private fun submitBindWithTemperature(temperature: Float?) {

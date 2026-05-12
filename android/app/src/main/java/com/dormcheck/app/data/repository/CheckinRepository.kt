@@ -8,6 +8,7 @@ import com.dormcheck.app.data.local.PrefsManager
 import com.dormcheck.app.domain.model.CheckinRequest
 import com.dormcheck.app.domain.model.CheckinResponse
 import com.dormcheck.app.domain.model.CheckinResult
+import com.dormcheck.app.domain.model.CreateStudentRequest
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.text.SimpleDateFormat
@@ -206,6 +207,20 @@ class CheckinRepository(
                 }
             } catch (e: Exception) {
                 null
+            }
+        }
+    }
+
+    suspend fun createStudent(studentId: String, name: String, grade: Int): Boolean {
+        return withContext(Dispatchers.IO) {
+            try {
+                val response = api.createStudent(
+                    prefs.apiKey,
+                    CreateStudentRequest(student_id = studentId, name = name, grade = grade)
+                )
+                response.isSuccessful && response.body()?.ok == true
+            } catch (e: Exception) {
+                false
             }
         }
     }

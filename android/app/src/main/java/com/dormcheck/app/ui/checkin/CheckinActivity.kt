@@ -214,6 +214,7 @@ class CheckinActivity : AppCompatActivity() {
                 is CheckinResult.Idle -> showIdle()
                 is CheckinResult.Processing -> showProcessing()
                 is CheckinResult.AwaitingTemperature -> showTemperatureInput(result)
+                is CheckinResult.StudentNotFound -> showStudentNotFound(result)
                 is CheckinResult.Success -> showSuccess(result)
                 is CheckinResult.Late -> showLate(result)
                 is CheckinResult.Fever -> showFever(result)
@@ -330,6 +331,64 @@ class CheckinActivity : AppCompatActivity() {
         binding.textStudentName.text = ""
         binding.textStudentInfo.text = ""
         binding.iconStatus.setImageResource(R.drawable.ic_error)
+    }
+
+    private fun showStudentNotFound(result: CheckinResult.StudentNotFound) {
+        FeedbackHelper.warning(this)
+        binding.progressCheckin.visibility = View.GONE
+        binding.cardResult.setCardBackgroundColor(getColor(R.color.warning_light))
+        binding.textStatus.text = "学生不存在"
+        binding.textStatus.setTextColor(getColor(R.color.warning))
+        binding.textStudentName.text = result.studentId
+        binding.textStudentInfo.text = "点击添加学生"
+        binding.iconStatus.setImageResource(R.drawable.ic_warning)
+
+        binding.cardResult.setOnClickListener {
+            showAddStudentDialog(result.studentId, result.uid)
+        }
+    }
+
+    private fun showAddStudentDialog(studentId: String, uid: String?) {
+        val layout = android.widget.LinearLayout(this).apply {
+            orientation = android.widget.LinearLayout.VERTICAL
+            setPadding(48, 32, 48, 16)
+        }
+
+        val nameInput = EditText(this).apply {
+            hint = "姓名"
+            setPadding(24, 24, 24, 24)
+            textSize = 18f
+        }
+        layout.addView(nameInput)
+
+        val gradeInput = EditText(this).apply {
+            hint = "年级 (如 9, 10, 11, 12)"
+            setPadding(24, 24, 24, 24)
+            textSize = 18f
+            inputType = android.text.InputType.TYPE_CLASS_NUMBER
+        }
+        layout.addView(gradeInput)
+
+        AlertDialog.Builder(this)
+            .setTitle("添加学生")
+            .setMessage("学号: $studentId")
+            .setView(layout)
+            .setPositiveButton("添加") { _, _ ->
+                val name = nameInput.text.toString().trim()
+                val grade = gradeInput.text.toString().trim().toIntOrNull()
+                if (name.isNotBlank() && grade != null && grade in 7..12) {
+                    binding.cardResult.setOnClickListener(null)
+                    viewModel.createStudentAndProceed(studentId, name, grade)
+                } else {
+                    Toast.makeText(this, "请输入有效的姓名和年级", Toast.LENGTH_SHORT).show()
+                }
+            }
+            .setNegativeButton("取消") { _, _ ->
+                binding.cardResult.setOnClickListener(null)
+                viewModel.dismissStudentNotFound()
+            }
+            .setCancelable(false)
+            .show()
     }
 
     private fun showUnknownCard(result: CheckinResult.UnknownCard) {
