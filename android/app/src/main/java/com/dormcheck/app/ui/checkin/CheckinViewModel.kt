@@ -62,7 +62,8 @@ class CheckinViewModel : ViewModel() {
             if (studentInfo != null) {
                 _state.value = studentInfo
             } else {
-                _state.value = CheckinResult.AwaitingTemperature(uid = uid)
+                lastUnknownUid = uid
+                _state.value = CheckinResult.UnknownCard(uid = uid)
             }
         }
     }
