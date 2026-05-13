@@ -111,21 +111,27 @@
             <TextView
                 android:id="@+id/text_status"
                 style="@style/BigStatusText"
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_below="@id/icon_status"
                 android:layout_centerHorizontal="true"
                 android:layout_marginTop="24dp"
+                android:gravity="center"
+                android:maxLines="2"
+                android:ellipsize="end"
                 android:text="@string/checkin_ready" />
 
             <TextView
                 android:id="@+id/text_student_name"
                 style="@style/StudentNameText"
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_below="@id/text_status"
                 android:layout_centerHorizontal="true"
-                android:layout_marginTop="16dp" />
+                android:layout_marginTop="16dp"
+                android:gravity="center"
+                android:maxLines="2"
+                android:ellipsize="end" />
 
             <TextView
                 android:id="@+id/text_student_info"

@@ -11,14 +11,14 @@
     <string name="setup_success">Connected</string>
     <string name="setup_failed">Connection failed</string>
 
-    <string name="checkin_ready">Scan card / barcode / enter ID</string>
+    <string name="checkin_ready">Scan card or enter ID</string>
     <string name="checkin_processing">Processing…</string>
     <string name="checkin_success">Check-in successful</string>
     <string name="checkin_late">Late</string>
     <string name="checkin_fever">Abnormal temperature</string>
     <string name="checkin_error">Check-in failed</string>
     <string name="checkin_unknown_card">Unrecognized card</string>
-    <string name="checkin_network_error">Network error, queued offline</string>
+    <string name="checkin_network_error">Offline — queued</string>
     <string name="checkin_queued">Offline queue: %d pending</string>
     <string name="checkin_awaiting_temp">Enter temperature</string>
 
@@ -28,17 +28,17 @@
     <string name="no_nfc">NFC not supported on this device</string>
     <string name="nfc_disabled">Please enable NFC in settings</string>
 
-    <string name="manual_input">Manual Input</string>
+    <string name="manual_input">Manual</string>
     <string name="manual_input_hint">Enter student ID (e.g. 22341)</string>
     <string name="temp_input_title">Enter temperature (°C)</string>
     <string name="confirm">Confirm</string>
     <string name="cancel">Cancel</string>
     <string name="skip">Skip</string>
 
-    <string name="stats_checked">Checked</string>
+    <string name="stats_checked">In</string>
     <string name="stats_late">Late</string>
     <string name="stats_fever">Fever</string>
-    <string name="stats_queued">Queued</string>
+    <string name="stats_queued">Queue</string>
 
     <string name="settings">Settings</string>
     <string name="device_name">Device: %s</string>
