@@ -101,7 +101,7 @@ function StatCard({
 }
 
 export default function DashboardPage() {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const userHouse = (session?.user as Record<string, unknown>)?.house as string | null;
   const isAdmin = (session?.user as Record<string, unknown>)?.isAdmin as boolean | undefined;
 
@@ -115,8 +115,9 @@ export default function DashboardPage() {
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
 
   useEffect(() => {
-    if (!house) setHouse(userHouse || "A");
-  }, [userHouse, house]);
+    if (status !== "authenticated") return;
+    if (!house) setHouse(isAdmin ? "A" : (userHouse || "A"));
+  }, [status, isAdmin, userHouse, house]);
 
   const fetchHouse = useCallback(async () => {
     if (!house) return;
@@ -206,11 +207,18 @@ export default function DashboardPage() {
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <h1 className="text-xl font-semibold">
-            {isAdmin ? "All Houses" : `House ${house}`}
-            {!isAdmin && (
-              <span className="ml-2 text-sm font-normal text-gray-400">
-                {["A", "B", "C", "D"].includes(house) ? "Girls Dorm" : "Boys Dorm"}
-              </span>
+            {status !== "authenticated" ? "" : isAdmin ? (
+              <>
+                All Houses
+                {house && <span className="ml-2 text-sm font-normal text-gray-400">viewing House {house}</span>}
+              </>
+            ) : (
+              <>
+                House {house}
+                <span className="ml-2 text-sm font-normal text-gray-400">
+                  {["A", "B", "C", "D"].includes(house) ? "Girls Dorm" : "Boys Dorm"}
+                </span>
+              </>
             )}
           </h1>
           <div className="flex items-center gap-2">
