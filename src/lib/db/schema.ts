@@ -21,7 +21,7 @@ export const students = pgTable("students", {
   uid: text("uid").unique(),
   name: text("name").notNull(),
   grade: integer("grade").notNull(),
-  house: text("house").notNull(),
+  house: text("house"),
   expectedMorningTime: time("expected_morning_time").notNull().default("07:30"),
   isActive: boolean("is_active").notNull().default(true),
 });

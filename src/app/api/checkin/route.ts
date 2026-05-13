@@ -76,7 +76,16 @@ export async function POST(req: NextRequest) {
       .where(eq(students.studentId, student_id));
   }
 
-  const [cfg] = await db.select().from(config).where(eq(config.house, student.house)).limit(1);
+  // Auto-assign house from device on first scan
+  if (!student.house && device.house) {
+    await db
+      .update(students)
+      .set({ house: device.house })
+      .where(eq(students.studentId, student.studentId));
+    student = { ...student, house: device.house };
+  }
+
+  const [cfg] = await db.select().from(config).where(eq(config.house, student.house ?? "")).limit(1);
   const feverThreshold = cfg?.feverThreshold ?? 37.3;
   const graceMinutes = cfg?.lateGraceMinutes ?? 5;
 

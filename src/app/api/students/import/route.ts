@@ -5,6 +5,7 @@ import { sql } from "drizzle-orm";
 import { getSessionUser } from "@/lib/session";
 
 export async function POST(req: NextRequest) {
+  try {
   const user = await getSessionUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
@@ -14,56 +15,64 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "No file uploaded" }, { status: 400 });
   }
 
-  const text = await file.text();
-  const lines = text.split("\n").filter((l) => l.trim());
-  if (lines.length < 2) {
-    return NextResponse.json({ error: "CSV must have a header and at least one row" }, { status: 400 });
+  const raw = await file.text();
+  const lines = raw.split("\n").filter((l) => l.trim());
+  if (lines.length < 1) {
+    return NextResponse.json({ error: "File is empty" }, { status: 400 });
   }
 
-  const header = lines[0].split(",").map((h) => h.trim().toLowerCase());
-  const requiredCols = ["student_id", "name", "grade", "house"];
-  for (const col of requiredCols) {
-    if (!header.includes(col)) {
-      return NextResponse.json({ error: `Missing column: ${col}` }, { status: 400 });
+  // Auto-detect delimiter: TSV if first line has tabs, else CSV
+  const delimiter = lines[0].includes("\t") ? "\t" : ",";
+  const splitLine = (l: string) => l.split(delimiter).map((c) => c.trim());
+
+  // Check if first line looks like a header (non-numeric first field)
+  const firstFields = splitLine(lines[0]);
+  const hasHeader = isNaN(Number(firstFields[0]));
+  const dataLines = hasHeader ? lines.slice(1) : lines;
+
+  let idIdx = 0, nameIdx = 1, gradeIdx = 2, houseIdx = -1, timeIdx = -1;
+  if (hasHeader) {
+    const header = firstFields.map((h) => h.toLowerCase());
+    idIdx = header.findIndex((h) => h.includes("student_id") || h === "id");
+    nameIdx = header.findIndex((h) => h === "name");
+    gradeIdx = header.findIndex((h) => h === "grade");
+    houseIdx = header.findIndex((h) => h === "house");
+    timeIdx = header.findIndex((h) => h.includes("morning_time"));
+    if (idIdx < 0 || nameIdx < 0 || gradeIdx < 0) {
+      return NextResponse.json({ error: "Cannot find required columns: student_id, name, grade" }, { status: 400 });
     }
   }
-
-  const idIdx = header.indexOf("student_id");
-  const nameIdx = header.indexOf("name");
-  const gradeIdx = header.indexOf("grade");
-  const houseIdx = header.indexOf("house");
-  const timeIdx = header.indexOf("expected_morning_time");
 
   const rows: {
     studentId: string;
     name: string;
     grade: number;
-    house: string;
+    house: string | null;
     expectedMorningTime: string;
   }[] = [];
 
   const errors: string[] = [];
 
-  for (let i = 1; i < lines.length; i++) {
-    const cols = lines[i].split(",").map((c) => c.trim());
+  for (let i = 0; i < dataLines.length; i++) {
+    const cols = splitLine(dataLines[i]);
     const studentId = cols[idIdx];
     const name = cols[nameIdx];
     const grade = parseInt(cols[gradeIdx], 10);
-    const house = cols[houseIdx];
+    const house = houseIdx >= 0 ? (cols[houseIdx] || null) : null;
     const expectedTime = timeIdx >= 0 ? cols[timeIdx] || (grade <= 10 ? "07:15" : "07:30") : (grade <= 10 ? "07:15" : "07:30");
 
-    if (!studentId || !name || isNaN(grade) || !house) {
-      errors.push(`Row ${i + 1}: missing required fields`);
+    if (!studentId || !name || isNaN(grade)) {
+      errors.push(`Row ${i + (hasHeader ? 2 : 1)}: missing required fields`);
       continue;
     }
 
-    if (!/^\d{5}$/.test(studentId)) {
-      errors.push(`Row ${i + 1}: student_id must be 5 digits, got "${studentId}"`);
+    if (!/^\d{4,6}$/.test(studentId)) {
+      errors.push(`Row ${i + (hasHeader ? 2 : 1)}: invalid student_id "${studentId}"`);
       continue;
     }
 
-    if (!user.isAdmin && user.house !== house) {
-      errors.push(`Row ${i + 1}: cannot import students for house ${house}`);
+    if (house && !user.isAdmin && user.house !== house) {
+      errors.push(`Row ${i + (hasHeader ? 2 : 1)}: cannot import students for house ${house}`);
       continue;
     }
 
@@ -84,7 +93,8 @@ export async function POST(req: NextRequest) {
         set: {
           name: sql`excluded.name`,
           grade: sql`excluded.grade`,
-          house: sql`excluded.house`,
+          // preserve existing house if new row has none
+          house: sql`COALESCE(excluded.house, students.house)`,
           expectedMorningTime: sql`excluded.expected_morning_time`,
         },
       });
@@ -96,4 +106,8 @@ export async function POST(req: NextRequest) {
     imported: upserted,
     errors: errors.length > 0 ? errors : undefined,
   });
+  } catch (e) {
+    console.error("Import error:", e);
+    return NextResponse.json({ error: String(e) }, { status: 500 });
+  }
 }

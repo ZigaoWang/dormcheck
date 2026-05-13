@@ -48,36 +48,6 @@ async function seed() {
     console.log(`  House ${h} PDA: ${apiKey}`);
   }
 
-  console.log("\nSeeding demo students...");
-  const names = [
-    "Alice Wang", "Bob Chen", "Charlie Li", "Diana Zhang", "Eric Liu",
-    "Fiona Xu", "George Huang", "Hannah Wu", "Ivan Zhou", "Julia Lin",
-  ];
-  const grades = [9, 9, 9, 10, 10, 10, 11, 11, 12, 12];
-
-  for (let i = 0; i < 10; i++) {
-    const grade = grades[i];
-    const house = houses[i % 8];
-    await db
-      .insert(students)
-      .values({
-        studentId: String(10001 + i),
-        name: names[i],
-        grade,
-        house,
-        expectedMorningTime: grade <= 10 ? "07:15" : "07:30",
-      })
-      .onConflictDoUpdate({
-        target: students.studentId,
-        set: {
-          name: names[i],
-          grade,
-          house,
-          expectedMorningTime: grade <= 10 ? "07:15" : "07:30",
-        },
-      });
-  }
-
   console.log("\nSeeding user accounts...");
   const passwordHash = await bcrypt.hash("admin123", 10);
 

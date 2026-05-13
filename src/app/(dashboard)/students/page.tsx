@@ -21,7 +21,7 @@ interface Student {
   studentId: string;
   name: string;
   grade: number;
-  house: string;
+  house: string | null;
   uid: string | null;
   isActive: boolean;
 }
@@ -71,7 +71,7 @@ export default function StudentsPage() {
     (s) =>
       s.name.toLowerCase().includes(search.toLowerCase()) ||
       s.studentId.toLowerCase().includes(search.toLowerCase()) ||
-      s.house.toLowerCase().includes(search.toLowerCase())
+      (s.house ?? "").toLowerCase().includes(search.toLowerCase())
   );
 
   async function handleImport(e: React.FormEvent<HTMLFormElement>) {
@@ -117,7 +117,7 @@ export default function StudentsPage() {
 
   function openEdit(s: Student) {
     setEditStudent(s);
-    setEditForm({ name: s.name, grade: String(s.grade), house: s.house });
+    setEditForm({ name: s.name, grade: String(s.grade), house: s.house ?? "" });
     setEditError(null);
     setEditOpen(true);
   }
@@ -176,13 +176,13 @@ export default function StudentsPage() {
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>Import Students from CSV</DialogTitle>
+                <DialogTitle>Import Students (TSV or CSV)</DialogTitle>
               </DialogHeader>
               <form onSubmit={handleImport} className="space-y-4">
                 <p className="text-sm text-gray-500">
-                  CSV columns: student_id, name, grade, house
+                  Accepts TSV (student_id, name, grade) or CSV (student_id, name, grade, house). House is optional — assigned automatically on first scan.
                 </p>
-                <Input type="file" name="file" accept=".csv" required />
+                <Input type="file" name="file" accept=".csv,.tsv,.txt" required />
                 {importResult && (
                   <p className={cn(
                     "text-sm",
@@ -300,7 +300,9 @@ export default function StudentsPage() {
                   <td className="px-3 py-2 text-gray-400">{s.studentId}</td>
                   <td className="px-3 py-2 font-medium">{s.name}</td>
                   <td className="px-3 py-2">{s.grade}</td>
-                  <td className="px-3 py-2">{s.house}</td>
+                  <td className="px-3 py-2">
+                    {s.house ?? <span className="text-gray-300">—</span>}
+                  </td>
                   <td className="px-3 py-2">
                     {s.uid ? (
                       <span className="text-gray-500">Bound</span>

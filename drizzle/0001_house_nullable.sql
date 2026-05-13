@@ -1,0 +1,1 @@
+ALTER TABLE students ALTER COLUMN house DROP NOT NULL;
