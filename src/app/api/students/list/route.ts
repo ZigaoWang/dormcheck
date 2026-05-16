@@ -114,7 +114,8 @@ export async function PUT(req: NextRequest) {
     updates.expectedMorningTime = grade <= 10 ? "07:15" : "07:30";
   }
   if (studentHouse !== undefined) {
-    if (!user.isAdmin && user.house !== studentHouse) {
+    // non-admin can only set house to their own or null (removing from house)
+    if (!user.isAdmin && studentHouse !== null && user.house !== studentHouse) {
       return NextResponse.json({ error: "Cannot move student to another house" }, { status: 403 });
     }
     updates.house = studentHouse;

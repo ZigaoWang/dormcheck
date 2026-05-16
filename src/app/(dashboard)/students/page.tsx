@@ -79,6 +79,11 @@ export default function StudentsPage() {
       (s.house ?? "").toLowerCase().includes(search.toLowerCase())
   );
 
+  const gradeCounts = [9, 10, 11, 12].map((g) => ({
+    grade: g,
+    count: filtered.filter((s) => s.grade === g).length,
+  }));
+
   async function handleImport(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setImporting(true);
@@ -160,6 +165,16 @@ export default function StudentsPage() {
       body: JSON.stringify({ studentId }),
     });
     fetchStudents();
+  }
+
+  async function handleRemoveFromHouse(studentId: string) {
+    if (!confirm("Remove this student from your house?")) return;
+    const res = await fetch("/api/students/list", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ studentId, house: null }),
+    });
+    if (res.ok) fetchStudents();
   }
 
   async function handleAssignToMyHouse(studentId: string) {
@@ -293,6 +308,13 @@ export default function StudentsPage() {
         className="max-w-sm"
       />
 
+      <div className="flex items-center gap-4 text-sm text-gray-500">
+        <span className="font-medium text-gray-900">{filtered.length} total</span>
+        {gradeCounts.map(({ grade, count }) => (
+          <span key={grade}>Y{grade}: <span className="font-medium text-gray-900">{count}</span></span>
+        ))}
+      </div>
+
       {loading ? (
         <p className="py-8 text-center text-sm text-gray-400">Loading...</p>
       ) : (
@@ -338,12 +360,18 @@ export default function StudentsPage() {
                         </Button>
                       ) : (
                         <>
-                          <Button variant="outline" size="sm" onClick={() => openEdit(s)}>
-                            Edit
-                          </Button>
-                          {isAdmin && (
-                            <Button variant="outline" size="sm" onClick={() => handleDelete(s.studentId)}>
-                              Delete
+                          {isAdmin ? (
+                            <>
+                              <Button variant="outline" size="sm" onClick={() => openEdit(s)}>
+                                Edit
+                              </Button>
+                              <Button variant="outline" size="sm" onClick={() => handleDelete(s.studentId)}>
+                                Delete
+                              </Button>
+                            </>
+                          ) : (
+                            <Button variant="outline" size="sm" onClick={() => handleRemoveFromHouse(s.studentId)}>
+                              Remove from House
                             </Button>
                           )}
                         </>
