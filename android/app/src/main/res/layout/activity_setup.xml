@@ -85,6 +85,16 @@
             android:layout_marginTop="16dp"
             android:visibility="gone" />
 
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="32dp"
+            android:gravity="center"
+            android:textSize="11sp"
+            android:textColor="@color/text_secondary"
+            android:lineSpacingMultiplier="1.6"
+            android:text="DormCheck · Version 0.1.0-beta\nEngineered by Zigao Wang · zigao.wang\ngithub.com/ZigaoWang/dormcheck · a@zigao.wang\n\nCopyright © 2026 Zigao Wang. All rights reserved.\nDeveloped for YK Pao School." />
+
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btn_connect"
             android:layout_width="match_parent"

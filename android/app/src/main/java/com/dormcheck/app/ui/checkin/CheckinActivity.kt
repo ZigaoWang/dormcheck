@@ -573,8 +573,17 @@ class CheckinActivity : AppCompatActivity() {
                     }
                     1 -> {
                         AlertDialog.Builder(this)
-                            .setTitle("DormCheck v1.0.0")
-                            .setMessage("Urovo i6310 PDA\nMorning/Evening Check-in System")
+                            .setTitle("DormCheck · Version 0.1.0-beta")
+                            .setMessage(
+                                "Engineered by Zigao Wang.\n\n" +
+                                "Copyright © 2026 Zigao Wang. All rights reserved. Developed for YK Pao School. " +
+                                "This software is provided \"as is\", without warranty of any kind, express or implied, " +
+                                "including but not limited to the warranties of merchantability, fitness for a particular " +
+                                "purpose, and noninfringement. In no event shall the author be liable for any claim, " +
+                                "damages, or other liability arising from the use of this software.\n\n" +
+                                "The source code is publicly available on GitHub. For technical inquiries, please contact a@zigao.wang.\n\n" +
+                                "zigao.wang\ngithub.com/ZigaoWang/dormcheck"
+                            )
                             .setPositiveButton("OK", null)
                             .show()
                     }

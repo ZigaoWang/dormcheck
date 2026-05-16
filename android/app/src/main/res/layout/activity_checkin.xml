@@ -263,6 +263,15 @@
 
     </LinearLayout>
 
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingBottom="6dp"
+        android:gravity="center"
+        android:textSize="9sp"
+        android:textColor="@color/text_secondary"
+        android:text="DormCheck v0.1.0-beta · Engineered by Zigao Wang" />
+
 </LinearLayout>
 
     <!-- Temperature Measurement Overlay -->
