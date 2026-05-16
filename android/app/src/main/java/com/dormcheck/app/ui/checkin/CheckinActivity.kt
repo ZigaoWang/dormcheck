@@ -7,7 +7,6 @@ import android.provider.Settings
 import android.view.KeyEvent
 import android.view.View
 import android.view.inputmethod.EditorInfo
-import android.widget.EditText
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -420,10 +419,7 @@ class CheckinActivity : AppCompatActivity() {
         setResultState(R.color.warning)
         binding.textStudentName.text = result.studentId
         binding.textStatus.text = "NOT FOUND"
-        binding.textStudentInfo.text = "Tap to add student"
-        binding.areaResult.setOnClickListener {
-            showAddStudentDialog(result.studentId, result.uid)
-        }
+        binding.textStudentInfo.text = ""
     }
 
     private fun showUnknownCard(result: CheckinResult.UnknownCard) {
@@ -431,10 +427,7 @@ class CheckinActivity : AppCompatActivity() {
         setResultState(R.color.neutral_dark)
         binding.textStudentName.text = "UID: ${result.uid}"
         binding.textStatus.text = "UNBOUND CARD"
-        binding.textStudentInfo.text = "Tap to bind student"
-        binding.areaResult.setOnClickListener {
-            showBindDialog(result.uid)
-        }
+        binding.textStudentInfo.text = ""
     }
 
     private fun showQueued(result: CheckinResult.Queued) {
@@ -460,76 +453,6 @@ class CheckinActivity : AppCompatActivity() {
 
     // --- Dialogs ---
 
-    private fun showAddStudentDialog(studentId: String, uid: String?) {
-        val layout = android.widget.LinearLayout(this).apply {
-            orientation = android.widget.LinearLayout.VERTICAL
-            setPadding(48, 32, 48, 16)
-        }
-
-        val nameInput = EditText(this).apply {
-            hint = "Name"
-            setPadding(24, 24, 24, 24)
-            textSize = 18f
-        }
-        layout.addView(nameInput)
-
-        val gradeInput = EditText(this).apply {
-            hint = "Grade (e.g. 9, 10, 11, 12)"
-            setPadding(24, 24, 24, 24)
-            textSize = 18f
-            inputType = android.text.InputType.TYPE_CLASS_NUMBER
-        }
-        layout.addView(gradeInput)
-
-        AlertDialog.Builder(this)
-            .setTitle("Add Student")
-            .setMessage("Student ID: $studentId")
-            .setView(layout)
-            .setPositiveButton("Add") { _, _ ->
-                val name = nameInput.text.toString().trim()
-                val grade = gradeInput.text.toString().trim().toIntOrNull()
-                if (name.isNotBlank() && grade != null && grade in 7..12) {
-                    binding.areaResult.setOnClickListener(null)
-                    viewModel.createStudentAndProceed(studentId, name, grade)
-                } else {
-                    Toast.makeText(this, "Enter a valid name and grade", Toast.LENGTH_SHORT).show()
-                }
-            }
-            .setNegativeButton("Cancel") { _, _ ->
-                binding.areaResult.setOnClickListener(null)
-                viewModel.dismissStudentNotFound()
-            }
-            .setCancelable(false)
-            .show()
-    }
-
-    private fun showBindDialog(uid: String) {
-        val input = EditText(this).apply {
-            hint = "Enter student ID (e.g. 22341)"
-            setPadding(48, 32, 48, 32)
-            textSize = 18f
-            inputType = android.text.InputType.TYPE_CLASS_NUMBER
-        }
-
-        AlertDialog.Builder(this)
-            .setTitle("Bind Card")
-            .setMessage("Card UID: $uid\nEnter the student ID:")
-            .setView(input)
-            .setPositiveButton("Bind & Check In") { _, _ ->
-                val studentId = input.text.toString().trim()
-                if (studentId.isNotBlank()) {
-                    binding.areaResult.setOnClickListener(null)
-                    viewModel.bindCard(studentId)
-                }
-            }
-            .setNegativeButton("Cancel") { _, _ ->
-                binding.areaResult.setOnClickListener(null)
-                viewModel.dismissUnknownCard()
-            }
-            .setCancelable(false)
-            .show()
-    }
-
     private fun showManualIdOverlay() {
         idBuffer.clear()
         refreshIdDisplay()
@@ -547,9 +470,14 @@ class CheckinActivity : AppCompatActivity() {
 
     private fun setupIdKeypad() {
         val digitClick = { digit: String ->
-            if (idBuffer.length < 10) {
+            if (idBuffer.length < 5) {
                 idBuffer.append(digit)
                 refreshIdDisplay()
+                if (idBuffer.length == 5) {
+                    val id = idBuffer.toString()
+                    hideManualIdOverlay()
+                    viewModel.onStudentIdEntered(id)
+                }
             }
         }
 
@@ -578,9 +506,11 @@ class CheckinActivity : AppCompatActivity() {
 
         binding.btnIdConfirm.setOnClickListener {
             val id = idBuffer.toString().trim()
-            if (id.isNotBlank()) {
+            if (id.length == 5) {
                 hideManualIdOverlay()
                 viewModel.onStudentIdEntered(id)
+            } else {
+                Toast.makeText(this, "Enter 5-digit student ID", Toast.LENGTH_SHORT).show()
             }
         }
 
