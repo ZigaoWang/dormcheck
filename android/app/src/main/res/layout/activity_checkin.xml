@@ -11,57 +11,53 @@
     android:background="@color/background"
     android:orientation="vertical">
 
-    <!-- Top bar -->
+    <!-- Status strip -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="@dimen/top_bar_height"
-        android:background="@color/primary"
+        android:background="@color/header_bg"
         android:gravity="center_vertical"
         android:orientation="horizontal"
-        android:paddingStart="16dp"
-        android:paddingEnd="8dp">
+        android:paddingStart="12dp"
+        android:paddingEnd="4dp">
 
         <View
             android:id="@+id/indicator_online"
-            android:layout_width="8dp"
-            android:layout_height="8dp"
-            android:layout_marginEnd="10dp"
+            android:layout_width="6dp"
+            android:layout_height="6dp"
+            android:layout_marginEnd="8dp"
             android:background="@drawable/bg_status_dot_online" />
 
-        <LinearLayout
+        <TextView
+            android:id="@+id/text_device_name"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:orientation="vertical">
+            android:textColor="@color/white"
+            android:textSize="13sp"
+            android:singleLine="true"
+            android:ellipsize="end" />
 
-            <TextView
-                android:id="@+id/text_device_name"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:textColor="@color/white"
-                android:textSize="15sp"
-                android:textStyle="bold"
-                android:singleLine="true"
-                android:ellipsize="end" />
-
-            <TextView
-                android:id="@+id/text_house_name"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:textColor="#B3FFFFFF"
-                android:textSize="12sp"
-                android:singleLine="true"
-                android:ellipsize="end" />
-
-        </LinearLayout>
+        <TextView
+            android:id="@+id/text_mode"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp"
+            android:textColor="@color/white"
+            android:textSize="13sp"
+            android:background="?attr/selectableItemBackground" />
 
         <ImageButton
             android:id="@+id/btn_settings"
-            android:layout_width="44dp"
-            android:layout_height="44dp"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:src="@drawable/ic_settings"
             android:contentDescription="@string/settings"
+            android:scaleType="centerInside"
+            android:padding="8dp"
             app:tint="@color/white" />
 
     </LinearLayout>
@@ -75,144 +71,93 @@
         android:imeOptions="actionDone"
         android:importantForAutofill="no" />
 
-    <!-- Check type selector -->
-    <com.google.android.material.chip.ChipGroup
-        android:id="@+id/chip_group_check_type"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:paddingStart="16dp"
-        android:paddingEnd="16dp"
-        android:paddingTop="12dp"
-        android:paddingBottom="4dp"
-        app:singleSelection="true"
-        app:selectionRequired="true">
-
-        <com.google.android.material.chip.Chip
-            android:id="@+id/chip_morning"
-            style="@style/Widget.MaterialComponents.Chip.Choice"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/check_type_morning" />
-
-        <com.google.android.material.chip.Chip
-            android:id="@+id/chip_studyhall"
-            style="@style/Widget.MaterialComponents.Chip.Choice"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/check_type_studyhall" />
-
-    </com.google.android.material.chip.ChipGroup>
-
-    <!-- Main result card -->
-    <androidx.cardview.widget.CardView
-        android:id="@+id/card_result"
+    <!-- Result area (fills remaining space) -->
+    <FrameLayout
+        android:id="@+id/area_result"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1"
-        android:layout_marginStart="16dp"
-        android:layout_marginEnd="16dp"
-        android:layout_marginTop="8dp"
-        android:layout_marginBottom="12dp"
-        app:cardCornerRadius="@dimen/card_corner_radius"
-        app:cardElevation="4dp">
+        android:layout_weight="1">
 
-        <RelativeLayout
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:padding="24dp">
-
-            <ImageView
-                android:id="@+id/icon_status"
-                android:layout_width="64dp"
-                android:layout_height="64dp"
-                android:layout_centerHorizontal="true"
-                android:layout_marginTop="32dp"
-                android:src="@drawable/ic_card_scan"
-                android:contentDescription="Status" />
-
-            <TextView
-                android:id="@+id/text_status"
-                style="@style/BigStatusText"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_below="@id/icon_status"
-                android:layout_centerHorizontal="true"
-                android:layout_marginTop="24dp"
-                android:gravity="center"
-                android:maxLines="2"
-                android:ellipsize="end"
-                android:text="@string/checkin_ready" />
+            android:orientation="vertical"
+            android:gravity="center">
 
             <TextView
                 android:id="@+id/text_student_name"
-                style="@style/StudentNameText"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_below="@id/text_status"
-                android:layout_centerHorizontal="true"
-                android:layout_marginTop="16dp"
                 android:gravity="center"
+                android:paddingStart="24dp"
+                android:paddingEnd="24dp"
+                android:textSize="36sp"
+                android:textStyle="bold"
+                android:textColor="@color/text_primary"
                 android:maxLines="2"
                 android:ellipsize="end" />
 
             <TextView
-                android:id="@+id/text_student_info"
-                style="@style/TemperatureText"
-                android:layout_width="wrap_content"
+                android:id="@+id/text_status"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_below="@id/text_student_name"
-                android:layout_centerHorizontal="true"
-                android:layout_marginTop="8dp" />
+                android:gravity="center"
+                android:paddingStart="24dp"
+                android:paddingEnd="24dp"
+                android:layout_marginTop="8dp"
+                android:textSize="24sp"
+                android:textStyle="bold"
+                android:textAllCaps="true"
+                android:textColor="@color/text_secondary" />
+
+            <TextView
+                android:id="@+id/text_student_info"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:paddingStart="24dp"
+                android:paddingEnd="24dp"
+                android:layout_marginTop="6dp"
+                android:textSize="20sp"
+                android:textColor="@color/text_secondary" />
 
             <ProgressBar
                 android:id="@+id/progress_checkin"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
-                android:layout_centerInParent="true"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
                 android:visibility="gone" />
 
-        </RelativeLayout>
+        </LinearLayout>
 
-    </androidx.cardview.widget.CardView>
+    </FrameLayout>
 
-    <!-- Manual Enter ID button -->
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/btn_manual_input"
-        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-        android:layout_width="match_parent"
-        android:layout_height="52dp"
-        android:layout_marginStart="16dp"
-        android:layout_marginEnd="16dp"
-        android:layout_marginBottom="12dp"
-        android:text="@string/manual_input_full"
-        android:textSize="15sp"
-        android:textColor="@color/primary"
-        android:textStyle="bold"
-        android:insetTop="0dp"
-        android:insetBottom="0dp"
-        app:cornerRadius="12dp"
-        app:strokeColor="@color/primary"
-        app:strokeWidth="1.5dp"
-        app:icon="@drawable/ic_keyboard"
-        app:iconGravity="textStart"
-        app:iconTint="@color/primary"
-        app:iconPadding="8dp"
-        app:rippleColor="#331565C0" />
-
-    <!-- Divider -->
+    <!-- Manual ID button -->
     <View
+        android:id="@+id/divider_manual"
         android:layout_width="match_parent"
         android:layout_height="1dp"
         android:background="@color/divider" />
 
+    <TextView
+        android:id="@+id/btn_manual_input"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:gravity="center"
+        android:text="@string/manual_input_caps"
+        android:textSize="14sp"
+        android:textStyle="bold"
+        android:textColor="@color/accent"
+        android:background="?attr/selectableItemBackground" />
+
     <!-- Footer -->
     <TextView
+        android:id="@+id/text_footer"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:padding="10dp"
+        android:paddingTop="4dp"
+        android:paddingBottom="6dp"
         android:gravity="center"
-        android:background="@color/card_background"
-        android:textSize="11sp"
+        android:textSize="10sp"
         android:textColor="@color/text_secondary"
         android:text="DormCheck v0.1.0-beta · Engineered by Zigao Wang" />
 
@@ -224,25 +169,24 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical"
-        android:background="@color/card_background"
+        android:background="@color/background"
         android:visibility="gone"
-        android:clickable="true"
-        android:elevation="8dp">
+        android:clickable="true">
 
         <!-- Student info header -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:background="@color/primary"
-            android:padding="16dp"
+            android:background="@color/header_bg"
+            android:padding="12dp"
             android:gravity="center">
 
             <TextView
                 android:id="@+id/text_temp_student_name"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textSize="24sp"
+                android:textSize="20sp"
                 android:textStyle="bold"
                 android:textColor="@color/white"
                 android:gravity="center" />
@@ -251,9 +195,9 @@
                 android:id="@+id/text_temp_student_id"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textSize="14sp"
+                android:textSize="13sp"
                 android:fontFamily="monospace"
-                android:textColor="#B3FFFFFF"
+                android:textColor="#80FFFFFF"
                 android:gravity="center"
                 android:visibility="gone" />
 
@@ -267,7 +211,7 @@
             android:layout_weight="1"
             android:orientation="vertical"
             android:gravity="center"
-            android:padding="24dp">
+            android:padding="16dp">
 
             <TextView
                 android:id="@+id/text_temp_status"
@@ -276,7 +220,7 @@
                 android:text="Measuring…"
                 android:textSize="18sp"
                 android:textColor="@color/text_secondary"
-                android:layout_marginBottom="16dp" />
+                android:layout_marginBottom="12dp" />
 
             <LinearLayout
                 android:layout_width="wrap_content"
@@ -288,8 +232,8 @@
                     android:id="@+id/text_temp_display"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:minWidth="180dp"
-                    android:textSize="72sp"
+                    android:minWidth="200dp"
+                    android:textSize="80sp"
                     android:fontFamily="monospace"
                     android:textStyle="bold"
                     android:textColor="@color/text_secondary"
@@ -300,11 +244,11 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="°C"
-                    android:textSize="28sp"
+                    android:textSize="24sp"
                     android:textColor="@color/text_secondary"
                     android:layout_gravity="top"
                     android:layout_marginStart="4dp"
-                    android:layout_marginTop="12dp" />
+                    android:layout_marginTop="8dp" />
 
             </LinearLayout>
 
@@ -313,19 +257,19 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Point thermometer at forehead"
-                android:textSize="14sp"
+                android:textSize="16sp"
                 android:textColor="@color/text_secondary"
-                android:layout_marginTop="16dp" />
+                android:layout_marginTop="12dp" />
 
         </LinearLayout>
 
-        <!-- Manual numpad (hidden when thermometer is active) -->
+        <!-- Manual numpad -->
         <GridLayout
             android:id="@+id/grid_numpad"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:paddingStart="16dp"
-            android:paddingEnd="16dp"
+            android:paddingStart="8dp"
+            android:paddingEnd="8dp"
             android:columnCount="3"
             android:rowCount="4"
             android:visibility="gone">
@@ -334,57 +278,46 @@
                 android:id="@+id/btn_num_1"
                 style="@style/NumpadButton"
                 android:text="1" />
-
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btn_num_2"
                 style="@style/NumpadButton"
                 android:text="2" />
-
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btn_num_3"
                 style="@style/NumpadButton"
                 android:text="3" />
-
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btn_num_4"
                 style="@style/NumpadButton"
                 android:text="4" />
-
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btn_num_5"
                 style="@style/NumpadButton"
                 android:text="5" />
-
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btn_num_6"
                 style="@style/NumpadButton"
                 android:text="6" />
-
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btn_num_7"
                 style="@style/NumpadButton"
                 android:text="7" />
-
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btn_num_8"
                 style="@style/NumpadButton"
                 android:text="8" />
-
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btn_num_9"
                 style="@style/NumpadButton"
                 android:text="9" />
-
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btn_num_dot"
                 style="@style/NumpadButton"
                 android:text="." />
-
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btn_num_0"
                 style="@style/NumpadButton"
                 android:text="0" />
-
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btn_num_back"
                 style="@style/NumpadButton"
@@ -396,54 +329,203 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:padding="12dp">
+            android:orientation="horizontal">
 
-            <com.google.android.material.button.MaterialButton
+            <TextView
                 android:id="@+id/btn_temp_cancel"
-                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
                 android:layout_width="0dp"
                 android:layout_height="52dp"
                 android:layout_weight="1"
+                android:gravity="center"
                 android:text="@string/cancel"
-                android:textSize="14sp"
+                android:textSize="15sp"
                 android:textColor="@color/text_secondary"
-                android:layout_marginEnd="6dp"
-                android:insetTop="0dp"
-                android:insetBottom="0dp"
-                app:cornerRadius="12dp"
-                app:strokeColor="@color/divider" />
+                android:background="?attr/selectableItemBackground" />
 
-            <com.google.android.material.button.MaterialButton
+            <View
+                android:layout_width="1dp"
+                android:layout_height="match_parent"
+                android:background="@color/divider" />
+
+            <TextView
                 android:id="@+id/btn_temp_manual"
-                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
                 android:layout_width="0dp"
                 android:layout_height="52dp"
                 android:layout_weight="1"
-                android:text="Manual"
-                android:textSize="14sp"
-                android:textColor="@color/primary"
-                android:layout_marginStart="6dp"
-                android:layout_marginEnd="6dp"
-                android:insetTop="0dp"
-                android:insetBottom="0dp"
-                app:cornerRadius="12dp"
-                app:strokeColor="@color/primary" />
+                android:gravity="center"
+                android:text="MANUAL"
+                android:textSize="15sp"
+                android:textStyle="bold"
+                android:textColor="@color/text_primary"
+                android:background="?attr/selectableItemBackground" />
 
-            <com.google.android.material.button.MaterialButton
+            <View
+                android:layout_width="1dp"
+                android:layout_height="match_parent"
+                android:background="@color/divider" />
+
+            <TextView
                 android:id="@+id/btn_temp_confirm"
                 android:layout_width="0dp"
                 android:layout_height="52dp"
                 android:layout_weight="1"
+                android:gravity="center"
                 android:text="@string/confirm"
-                android:textSize="14sp"
+                android:textSize="15sp"
                 android:textStyle="bold"
-                android:layout_marginStart="6dp"
-                android:insetTop="0dp"
-                android:insetBottom="0dp"
-                app:cornerRadius="12dp"
-                app:backgroundTint="@color/primary"
-                android:textColor="@color/white" />
+                android:textColor="@color/white"
+                android:background="@color/accent" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <!-- Manual ID Entry Overlay -->
+    <LinearLayout
+        android:id="@+id/overlay_manual_id"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:background="@color/background"
+        android:visibility="gone"
+        android:clickable="true">
+
+        <!-- Header -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@color/header_bg"
+            android:padding="12dp"
+            android:gravity="center">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:textColor="@color/white"
+                android:gravity="center"
+                android:text="ENTER STUDENT ID" />
+
+        </LinearLayout>
+
+        <!-- ID display -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:padding="16dp">
+
+            <TextView
+                android:id="@+id/text_id_display"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:minWidth="200dp"
+                android:textSize="56sp"
+                android:fontFamily="monospace"
+                android:textStyle="bold"
+                android:textColor="@color/text_primary"
+                android:gravity="center"
+                android:text="—" />
+
+        </LinearLayout>
+
+        <!-- Numpad -->
+        <GridLayout
+            android:id="@+id/grid_id_numpad"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingStart="8dp"
+            android:paddingEnd="8dp"
+            android:columnCount="3"
+            android:rowCount="4">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_id_1"
+                style="@style/NumpadButton"
+                android:text="1" />
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_id_2"
+                style="@style/NumpadButton"
+                android:text="2" />
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_id_3"
+                style="@style/NumpadButton"
+                android:text="3" />
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_id_4"
+                style="@style/NumpadButton"
+                android:text="4" />
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_id_5"
+                style="@style/NumpadButton"
+                android:text="5" />
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_id_6"
+                style="@style/NumpadButton"
+                android:text="6" />
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_id_7"
+                style="@style/NumpadButton"
+                android:text="7" />
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_id_8"
+                style="@style/NumpadButton"
+                android:text="8" />
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_id_9"
+                style="@style/NumpadButton"
+                android:text="9" />
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_id_clear"
+                style="@style/NumpadButton"
+                android:text="CLR" />
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_id_0"
+                style="@style/NumpadButton"
+                android:text="0" />
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_id_back"
+                style="@style/NumpadButton"
+                android:text="⌫" />
+
+        </GridLayout>
+
+        <!-- Bottom buttons -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/btn_id_cancel"
+                android:layout_width="0dp"
+                android:layout_height="52dp"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:text="@string/cancel"
+                android:textSize="15sp"
+                android:textColor="@color/text_secondary"
+                android:background="?attr/selectableItemBackground" />
+
+            <View
+                android:layout_width="1dp"
+                android:layout_height="match_parent"
+                android:background="@color/divider" />
+
+            <TextView
+                android:id="@+id/btn_id_confirm"
+                android:layout_width="0dp"
+                android:layout_height="52dp"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:text="@string/confirm"
+                android:textSize="15sp"
+                android:textStyle="bold"
+                android:textColor="@color/white"
+                android:background="@color/accent" />
 
         </LinearLayout>
 

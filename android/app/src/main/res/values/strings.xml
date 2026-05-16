@@ -30,6 +30,7 @@
 
     <string name="manual_input">Manual</string>
     <string name="manual_input_full">Enter ID Manually</string>
+    <string name="manual_input_caps">ENTER ID</string>
     <string name="manual_input_title">Enter Student ID</string>
     <string name="manual_input_hint">Enter student ID (e.g. 22341)</string>
     <string name="manual_input_hint_label">Student ID</string>

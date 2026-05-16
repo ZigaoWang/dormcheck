@@ -47,7 +47,7 @@ class ManualInputBottomSheet : BottomSheetDialogFragment() {
     private fun submit() {
         val id = binding.editStudentId.text.toString().trim()
         if (id.isBlank()) {
-            binding.inputLayout.error = "Please enter a student ID"
+            binding.inputLayout.error = "Enter a student ID"
             return
         }
         binding.inputLayout.error = null

@@ -1,7 +1,5 @@
 package com.dormcheck.app.ui.checkin
 
-import android.animation.ObjectAnimator
-import android.animation.ValueAnimator
 import android.content.Intent
 import android.nfc.NfcAdapter
 import android.os.Bundle
@@ -35,8 +33,8 @@ class CheckinActivity : AppCompatActivity() {
 
     private var barcodeBuffer = StringBuilder()
     private val tempBuffer = StringBuilder()
+    private val idBuffer = StringBuilder()
     private var thermometerAvailable = false
-    private var idlePulseAnimator: ObjectAnimator? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -146,7 +144,7 @@ class CheckinActivity : AppCompatActivity() {
     private fun triggerThermometerRead() {
         if (!thermometerAvailable) return
         binding.textTempStatus.text = "Measuring…"
-        binding.textTempStatus.setTextColor(getColor(R.color.primary))
+        binding.textTempStatus.setTextColor(getColor(R.color.text_primary))
         binding.textTempHint.text = "Reading…"
 
         val temp = thermometer.readOnce()
@@ -156,41 +154,47 @@ class CheckinActivity : AppCompatActivity() {
             refreshTempDisplay()
             FeedbackHelper.success(this)
         } else {
-            binding.textTempHint.text = "No reading detected, try again"
+            binding.textTempHint.text = "No reading, try again"
             binding.textTempStatus.text = "Read failed"
-            binding.textTempStatus.setTextColor(getColor(R.color.warning))
+            binding.textTempStatus.setTextColor(getColor(R.color.error))
             FeedbackHelper.warning(this)
         }
     }
 
     private fun setupUI() {
         val prefs = DormCheckApp.instance.prefs
-        binding.textDeviceName.text = prefs.deviceName.ifBlank { getString(R.string.app_name) }
-        binding.textHouseName.text = if (prefs.house.isNotBlank()) {
-            getString(R.string.house_label, prefs.house)
-        } else {
-            ""
-        }
+        val house = if (prefs.house.isNotBlank()) " · ${prefs.house}" else ""
+        binding.textDeviceName.text = "${prefs.deviceName}${house}"
 
-        binding.chipGroupCheckType.setOnCheckedChangeListener { _, checkedId ->
-            val type = when (checkedId) {
-                R.id.chip_morning -> CheckType.MORNING
-                R.id.chip_studyhall -> CheckType.STUDYHALL
-                else -> return@setOnCheckedChangeListener
-            }
-            viewModel.setCheckType(type)
-        }
-
-        when (viewModel.checkType.value) {
-            CheckType.MORNING -> binding.chipMorning.isChecked = true
-            CheckType.STUDYHALL -> binding.chipStudyhall.isChecked = true
-            else -> binding.chipMorning.isChecked = true
-        }
-
-        binding.btnManualInput.setOnClickListener { showManualInputDialog() }
+        updateModeDisplay()
+        binding.textMode.setOnClickListener { showModeSelector() }
+        binding.btnManualInput.setOnClickListener { showManualIdOverlay() }
         binding.btnSettings.setOnClickListener { showSettingsDialog() }
 
         setupTemperatureKeypad()
+        setupIdKeypad()
+    }
+
+    private fun updateModeDisplay() {
+        val label = when (viewModel.checkType.value) {
+            CheckType.STUDYHALL -> "Study Hall ▾"
+            else -> "Morning ▾"
+        }
+        binding.textMode.text = label
+    }
+
+    private fun showModeSelector() {
+        val modes = arrayOf("Morning", "Study Hall")
+        val current = if (viewModel.checkType.value == CheckType.STUDYHALL) 1 else 0
+        AlertDialog.Builder(this)
+            .setTitle("Check Mode")
+            .setSingleChoiceItems(modes, current) { dialog, which ->
+                val type = if (which == 0) CheckType.MORNING else CheckType.STUDYHALL
+                viewModel.setCheckType(type)
+                updateModeDisplay()
+                dialog.dismiss()
+            }
+            .show()
     }
 
     private fun setupTemperatureKeypad() {
@@ -245,6 +249,7 @@ class CheckinActivity : AppCompatActivity() {
             thermometer.stopPolling()
             tempBuffer.clear()
             binding.gridNumpad.visibility = View.VISIBLE
+            binding.btnTempManual.visibility = View.GONE
             binding.textTempHint.text = "Enter manually"
             binding.textTempStatus.text = "Enter temperature"
             binding.textTempStatus.setTextColor(getColor(R.color.text_secondary))
@@ -262,28 +267,28 @@ class CheckinActivity : AppCompatActivity() {
             when {
                 temp >= 37.3f -> {
                     binding.textTempDisplay.setTextColor(getColor(R.color.error))
-                    binding.textTempStatus.text = "Fever"
+                    binding.textTempStatus.text = "FEVER"
                     binding.textTempStatus.setTextColor(getColor(R.color.error))
-                    binding.layoutTempReading.setBackgroundColor(getColor(R.color.error_light))
+                    binding.layoutTempReading.setBackgroundColor(getColor(R.color.background))
                 }
                 temp >= 37.0f -> {
                     binding.textTempDisplay.setTextColor(getColor(R.color.warning))
-                    binding.textTempStatus.text = "Elevated"
+                    binding.textTempStatus.text = "ELEVATED"
                     binding.textTempStatus.setTextColor(getColor(R.color.warning))
-                    binding.layoutTempReading.setBackgroundColor(getColor(R.color.warning_light))
+                    binding.layoutTempReading.setBackgroundColor(getColor(R.color.background))
                 }
                 else -> {
                     binding.textTempDisplay.setTextColor(getColor(R.color.success))
-                    binding.textTempStatus.text = "Normal"
+                    binding.textTempStatus.text = "NORMAL"
                     binding.textTempStatus.setTextColor(getColor(R.color.success))
-                    binding.layoutTempReading.setBackgroundColor(getColor(R.color.success_light))
+                    binding.layoutTempReading.setBackgroundColor(getColor(R.color.background))
                 }
             }
         } else {
-            binding.textTempDisplay.setTextColor(getColor(R.color.text_secondary))
+            binding.textTempDisplay.setTextColor(getColor(R.color.text_primary))
             binding.textTempStatus.text = if (thermometerAvailable) "Measuring…" else "Enter temperature"
             binding.textTempStatus.setTextColor(getColor(R.color.text_secondary))
-            binding.layoutTempReading.setBackgroundColor(getColor(R.color.card_background))
+            binding.layoutTempReading.setBackgroundColor(getColor(R.color.background))
         }
     }
 
@@ -312,36 +317,35 @@ class CheckinActivity : AppCompatActivity() {
         viewModel.feverCount.observe(this) { }
     }
 
+    // --- State display methods ---
+
     private fun showIdle() {
-        binding.cardResult.setCardBackgroundColor(getColor(R.color.card_background))
-        binding.textStatus.text = getString(R.string.checkin_ready)
-        binding.textStatus.setTextColor(getColor(R.color.text_primary))
-        binding.textStudentName.text = ""
-        binding.textStudentInfo.text = getString(R.string.idle_hint)
-        binding.textStudentInfo.setTextColor(getColor(R.color.text_secondary))
-        binding.iconStatus.setImageResource(R.drawable.ic_card_scan)
+        binding.mainContent.setBackgroundColor(getColor(R.color.background))
+        binding.areaResult.setBackgroundColor(getColor(R.color.background))
+        binding.textStudentName.text = "READY"
+        binding.textStudentName.setTextColor(getColor(R.color.text_secondary))
+        binding.textStatus.text = "Scan or enter ID"
+        binding.textStatus.setTextColor(getColor(R.color.text_secondary))
+        binding.textStudentInfo.text = ""
         binding.progressCheckin.visibility = View.GONE
-        binding.cardResult.setOnClickListener(null)
-        startIdlePulse()
+        binding.areaResult.setOnClickListener(null)
+        binding.textFooter.setTextColor(getColor(R.color.text_secondary))
+        binding.dividerManual.visibility = View.VISIBLE
+        binding.btnManualInput.visibility = View.VISIBLE
     }
 
     private fun showProcessing() {
-        stopIdlePulse()
+        binding.textStudentName.text = ""
+        binding.textStatus.text = ""
+        binding.textStudentInfo.text = ""
         binding.progressCheckin.visibility = View.VISIBLE
-        binding.textStatus.text = getString(R.string.checkin_processing)
-        binding.cardResult.setOnClickListener(null)
+        binding.areaResult.setOnClickListener(null)
+        binding.dividerManual.visibility = View.GONE
+        binding.btnManualInput.visibility = View.GONE
     }
 
     private fun showTemperatureInput(result: CheckinResult.AwaitingTemperature) {
-        stopIdlePulse()
         binding.progressCheckin.visibility = View.GONE
-        binding.cardResult.setCardBackgroundColor(getColor(R.color.card_background))
-        binding.textStatus.text = getString(R.string.checkin_awaiting_temp)
-        binding.textStatus.setTextColor(getColor(R.color.primary))
-        binding.textStudentName.text = result.name ?: result.studentId ?: result.uid ?: ""
-        binding.textStudentInfo.text = ""
-        binding.iconStatus.setImageResource(R.drawable.ic_card_scan)
-
         showTemperatureOverlay(result)
     }
 
@@ -357,7 +361,7 @@ class CheckinActivity : AppCompatActivity() {
         }
 
         tempBuffer.clear()
-        binding.layoutTempReading.setBackgroundColor(getColor(R.color.card_background))
+        binding.layoutTempReading.setBackgroundColor(getColor(R.color.background))
         refreshTempDisplay()
 
         if (thermometerAvailable) {
@@ -371,95 +375,90 @@ class CheckinActivity : AppCompatActivity() {
         }
 
         binding.overlayTemperature.visibility = View.VISIBLE
-        binding.overlayTemperature.alpha = 0f
-        binding.overlayTemperature.animate().alpha(1f).setDuration(150).start()
     }
 
     private fun hideTemperatureOverlay() {
         tempBuffer.clear()
-        binding.overlayTemperature.animate().alpha(0f).setDuration(120).withEndAction {
-            binding.overlayTemperature.visibility = View.GONE
-            refreshTempDisplay()
-        }.start()
+        binding.overlayTemperature.visibility = View.GONE
+        refreshTempDisplay()
     }
 
     private fun showSuccess(result: CheckinResult.Success) {
         FeedbackHelper.success(this)
-        stopIdlePulse()
-        animateCardTransition {
-            binding.progressCheckin.visibility = View.GONE
-            binding.cardResult.setCardBackgroundColor(getColor(R.color.success_light))
-            binding.textStatus.text = getString(R.string.checkin_success)
-            binding.textStatus.setTextColor(getColor(R.color.success))
-            binding.textStudentName.text = result.response.name ?: ""
-            binding.textStudentInfo.text = buildStudentInfo(result.response.grade, result.response.student_id)
-            binding.textStudentInfo.setTextColor(getColor(R.color.text_secondary))
-            binding.iconStatus.setImageResource(R.drawable.ic_check_circle)
-        }
+        setResultState(R.color.success)
+        binding.textStudentName.text = result.response.name ?: ""
+        binding.textStatus.text = "ON TIME"
+        binding.textStudentInfo.text = buildStudentInfo(result.response.grade, result.response.student_id)
     }
 
     private fun showLate(result: CheckinResult.Late) {
         FeedbackHelper.warning(this)
-        stopIdlePulse()
-        animateCardTransition {
-            binding.progressCheckin.visibility = View.GONE
-            binding.cardResult.setCardBackgroundColor(getColor(R.color.warning_light))
-            binding.textStatus.text = getString(R.string.checkin_late)
-            binding.textStatus.setTextColor(getColor(R.color.warning))
-            binding.textStudentName.text = result.response.name ?: ""
-            binding.textStudentInfo.text = buildStudentInfo(result.response.grade, result.response.student_id)
-            binding.textStudentInfo.setTextColor(getColor(R.color.text_secondary))
-            binding.iconStatus.setImageResource(R.drawable.ic_warning)
-        }
+        setResultState(R.color.warning)
+        binding.textStudentName.text = result.response.name ?: ""
+        binding.textStatus.text = "LATE"
+        binding.textStudentInfo.text = buildStudentInfo(result.response.grade, result.response.student_id)
     }
 
     private fun showFever(result: CheckinResult.Fever) {
         FeedbackHelper.error(this)
-        stopIdlePulse()
-        animateCardTransition {
-            binding.progressCheckin.visibility = View.GONE
-            binding.cardResult.setCardBackgroundColor(getColor(R.color.error_light))
-            binding.textStatus.text = getString(R.string.checkin_fever)
-            binding.textStatus.setTextColor(getColor(R.color.error))
-            binding.textStudentName.text = result.response.name ?: ""
-            binding.textStudentInfo.text = buildStudentInfo(result.response.grade, result.response.student_id)
-            binding.textStudentInfo.setTextColor(getColor(R.color.text_secondary))
-            binding.iconStatus.setImageResource(R.drawable.ic_fever)
-        }
+        setResultState(R.color.error)
+        binding.textStudentName.text = result.response.name ?: ""
+        binding.textStatus.text = "FEVER"
+        binding.textStudentInfo.text = buildStudentInfo(result.response.grade, result.response.student_id)
     }
 
     private fun showError(result: CheckinResult.Error) {
         FeedbackHelper.error(this)
-        stopIdlePulse()
-        animateCardTransition {
-            binding.progressCheckin.visibility = View.GONE
-            binding.cardResult.setCardBackgroundColor(getColor(R.color.error_light))
-            binding.textStatus.text = result.message
-            binding.textStatus.setTextColor(getColor(R.color.error))
-            binding.textStudentName.text = ""
-            binding.textStudentInfo.text = ""
-            binding.iconStatus.setImageResource(R.drawable.ic_error)
-        }
+        setResultState(R.color.neutral_dark)
+        binding.textStudentName.text = result.message
+        binding.textStatus.text = "ERROR"
+        binding.textStudentInfo.text = ""
     }
 
     private fun showStudentNotFound(result: CheckinResult.StudentNotFound) {
         FeedbackHelper.warning(this)
-        stopIdlePulse()
-        animateCardTransition {
-            binding.progressCheckin.visibility = View.GONE
-            binding.cardResult.setCardBackgroundColor(getColor(R.color.warning_light))
-            binding.textStatus.text = "Student not found"
-            binding.textStatus.setTextColor(getColor(R.color.warning))
-            binding.textStudentName.text = result.studentId
-            binding.textStudentInfo.text = "Tap to add student"
-            binding.textStudentInfo.setTextColor(getColor(R.color.warning))
-            binding.iconStatus.setImageResource(R.drawable.ic_warning)
-
-            binding.cardResult.setOnClickListener {
-                showAddStudentDialog(result.studentId, result.uid)
-            }
+        setResultState(R.color.warning)
+        binding.textStudentName.text = result.studentId
+        binding.textStatus.text = "NOT FOUND"
+        binding.textStudentInfo.text = "Tap to add student"
+        binding.areaResult.setOnClickListener {
+            showAddStudentDialog(result.studentId, result.uid)
         }
     }
+
+    private fun showUnknownCard(result: CheckinResult.UnknownCard) {
+        FeedbackHelper.warning(this)
+        setResultState(R.color.neutral_dark)
+        binding.textStudentName.text = "UID: ${result.uid}"
+        binding.textStatus.text = "UNBOUND CARD"
+        binding.textStudentInfo.text = "Tap to bind student"
+        binding.areaResult.setOnClickListener {
+            showBindDialog(result.uid)
+        }
+    }
+
+    private fun showQueued(result: CheckinResult.Queued) {
+        FeedbackHelper.warning(this)
+        setResultState(R.color.neutral_dark)
+        binding.textStudentName.text = getString(R.string.checkin_queued, result.pendingCount)
+        binding.textStatus.text = "OFFLINE"
+        binding.textStudentInfo.text = ""
+    }
+
+    private fun setResultState(colorRes: Int) {
+        binding.progressCheckin.visibility = View.GONE
+        binding.mainContent.setBackgroundColor(getColor(colorRes))
+        binding.areaResult.setBackgroundColor(getColor(colorRes))
+        binding.textStudentName.setTextColor(getColor(R.color.white))
+        binding.textStatus.setTextColor(getColor(R.color.white))
+        binding.textStudentInfo.setTextColor(0xB3FFFFFF.toInt())
+        binding.textFooter.setTextColor(0x66FFFFFF)
+        binding.areaResult.setOnClickListener(null)
+        binding.dividerManual.visibility = View.GONE
+        binding.btnManualInput.visibility = View.GONE
+    }
+
+    // --- Dialogs ---
 
     private fun showAddStudentDialog(studentId: String, uid: String?) {
         val layout = android.widget.LinearLayout(this).apply {
@@ -490,37 +489,18 @@ class CheckinActivity : AppCompatActivity() {
                 val name = nameInput.text.toString().trim()
                 val grade = gradeInput.text.toString().trim().toIntOrNull()
                 if (name.isNotBlank() && grade != null && grade in 7..12) {
-                    binding.cardResult.setOnClickListener(null)
+                    binding.areaResult.setOnClickListener(null)
                     viewModel.createStudentAndProceed(studentId, name, grade)
                 } else {
                     Toast.makeText(this, "Enter a valid name and grade", Toast.LENGTH_SHORT).show()
                 }
             }
             .setNegativeButton("Cancel") { _, _ ->
-                binding.cardResult.setOnClickListener(null)
+                binding.areaResult.setOnClickListener(null)
                 viewModel.dismissStudentNotFound()
             }
             .setCancelable(false)
             .show()
-    }
-
-    private fun showUnknownCard(result: CheckinResult.UnknownCard) {
-        FeedbackHelper.warning(this)
-        stopIdlePulse()
-        animateCardTransition {
-            binding.progressCheckin.visibility = View.GONE
-            binding.cardResult.setCardBackgroundColor(getColor(R.color.warning_light))
-            binding.textStatus.text = "Unbound card"
-            binding.textStatus.setTextColor(getColor(R.color.warning))
-            binding.textStudentName.text = "UID: ${result.uid}"
-            binding.textStudentInfo.text = "Tap to bind student"
-            binding.textStudentInfo.setTextColor(getColor(R.color.warning))
-            binding.iconStatus.setImageResource(R.drawable.ic_warning)
-
-            binding.cardResult.setOnClickListener {
-                showBindDialog(result.uid)
-            }
-        }
     }
 
     private fun showBindDialog(uid: String) {
@@ -538,43 +518,80 @@ class CheckinActivity : AppCompatActivity() {
             .setPositiveButton("Bind & Check In") { _, _ ->
                 val studentId = input.text.toString().trim()
                 if (studentId.isNotBlank()) {
-                    binding.cardResult.setOnClickListener(null)
+                    binding.areaResult.setOnClickListener(null)
                     viewModel.bindCard(studentId)
                 }
             }
             .setNegativeButton("Cancel") { _, _ ->
-                binding.cardResult.setOnClickListener(null)
+                binding.areaResult.setOnClickListener(null)
                 viewModel.dismissUnknownCard()
             }
             .setCancelable(false)
             .show()
     }
 
-    private fun showManualInputDialog() {
-        val sheet = ManualInputBottomSheet()
-        sheet.onStudentIdConfirmed = { studentId ->
-            viewModel.onStudentIdEntered(studentId)
-        }
-        sheet.show(supportFragmentManager, ManualInputBottomSheet.TAG)
+    private fun showManualIdOverlay() {
+        idBuffer.clear()
+        refreshIdDisplay()
+        binding.overlayManualId.visibility = View.VISIBLE
     }
 
-    private fun showQueued(result: CheckinResult.Queued) {
-        FeedbackHelper.warning(this)
-        stopIdlePulse()
-        animateCardTransition {
-            binding.progressCheckin.visibility = View.GONE
-            binding.cardResult.setCardBackgroundColor(getColor(R.color.warning_light))
-            binding.textStatus.text = getString(R.string.checkin_network_error)
-            binding.textStatus.setTextColor(getColor(R.color.warning))
-            binding.textStudentName.text = getString(R.string.checkin_queued, result.pendingCount)
-            binding.textStudentInfo.text = ""
-            binding.iconStatus.setImageResource(R.drawable.ic_offline)
+    private fun hideManualIdOverlay() {
+        idBuffer.clear()
+        binding.overlayManualId.visibility = View.GONE
+    }
+
+    private fun refreshIdDisplay() {
+        binding.textIdDisplay.text = if (idBuffer.isEmpty()) "—" else idBuffer.toString()
+    }
+
+    private fun setupIdKeypad() {
+        val digitClick = { digit: String ->
+            if (idBuffer.length < 10) {
+                idBuffer.append(digit)
+                refreshIdDisplay()
+            }
+        }
+
+        binding.btnId0.setOnClickListener { digitClick("0") }
+        binding.btnId1.setOnClickListener { digitClick("1") }
+        binding.btnId2.setOnClickListener { digitClick("2") }
+        binding.btnId3.setOnClickListener { digitClick("3") }
+        binding.btnId4.setOnClickListener { digitClick("4") }
+        binding.btnId5.setOnClickListener { digitClick("5") }
+        binding.btnId6.setOnClickListener { digitClick("6") }
+        binding.btnId7.setOnClickListener { digitClick("7") }
+        binding.btnId8.setOnClickListener { digitClick("8") }
+        binding.btnId9.setOnClickListener { digitClick("9") }
+
+        binding.btnIdBack.setOnClickListener {
+            if (idBuffer.isNotEmpty()) {
+                idBuffer.deleteCharAt(idBuffer.length - 1)
+                refreshIdDisplay()
+            }
+        }
+
+        binding.btnIdClear.setOnClickListener {
+            idBuffer.clear()
+            refreshIdDisplay()
+        }
+
+        binding.btnIdConfirm.setOnClickListener {
+            val id = idBuffer.toString().trim()
+            if (id.isNotBlank()) {
+                hideManualIdOverlay()
+                viewModel.onStudentIdEntered(id)
+            }
+        }
+
+        binding.btnIdCancel.setOnClickListener {
+            hideManualIdOverlay()
         }
     }
 
     private fun buildStudentInfo(grade: Int?, studentId: String?): String {
         val parts = mutableListOf<String>()
-        grade?.let { parts.add("Grade ${it}") }
+        grade?.let { parts.add("Grade $it") }
         studentId?.let { parts.add(it) }
         return parts.joinToString(" · ")
     }
@@ -622,36 +639,6 @@ class CheckinActivity : AppCompatActivity() {
         }
     }
 
-    private fun animateCardTransition(updateBlock: () -> Unit) {
-        binding.cardResult.animate()
-            .alpha(0.3f)
-            .setDuration(120)
-            .withEndAction {
-                updateBlock()
-                binding.cardResult.animate()
-                    .alpha(1f)
-                    .setDuration(200)
-                    .start()
-            }
-            .start()
-    }
-
-    private fun startIdlePulse() {
-        stopIdlePulse()
-        idlePulseAnimator = ObjectAnimator.ofFloat(binding.iconStatus, "alpha", 1f, 0.4f).apply {
-            duration = 1500
-            repeatMode = ValueAnimator.REVERSE
-            repeatCount = ValueAnimator.INFINITE
-            start()
-        }
-    }
-
-    private fun stopIdlePulse() {
-        idlePulseAnimator?.cancel()
-        idlePulseAnimator = null
-        binding.iconStatus.alpha = 1f
-    }
-
     override fun onResume() {
         super.onResume()
         cardReader.enableForegroundDispatch()
@@ -670,7 +657,6 @@ class CheckinActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
-        stopIdlePulse()
         networkMonitor.stop()
         thermometer.release()
         FeedbackHelper.release()

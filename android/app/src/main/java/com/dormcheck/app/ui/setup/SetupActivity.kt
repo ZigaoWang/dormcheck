@@ -93,6 +93,7 @@ class SetupActivity : AppCompatActivity() {
         binding.btnConnect.text = getString(
             if (loading) R.string.setup_connecting else R.string.setup_connect
         )
+        binding.btnConnect.alpha = if (loading) 0.5f else 1.0f
         binding.progressBar.visibility = if (loading) View.VISIBLE else View.GONE
     }
 
