@@ -334,11 +334,12 @@
             <TextView
                 android:id="@+id/btn_temp_cancel"
                 android:layout_width="0dp"
-                android:layout_height="52dp"
+                android:layout_height="56dp"
                 android:layout_weight="1"
                 android:gravity="center"
                 android:text="@string/cancel"
-                android:textSize="15sp"
+                android:textSize="16sp"
+                android:textAllCaps="true"
                 android:textColor="@color/text_secondary"
                 android:background="?attr/selectableItemBackground" />
 
@@ -350,12 +351,12 @@
             <TextView
                 android:id="@+id/btn_temp_manual"
                 android:layout_width="0dp"
-                android:layout_height="52dp"
+                android:layout_height="56dp"
                 android:layout_weight="1"
                 android:gravity="center"
                 android:text="MANUAL"
-                android:textSize="15sp"
-                android:textStyle="bold"
+                android:textSize="16sp"
+                android:textAllCaps="true"
                 android:textColor="@color/text_primary"
                 android:background="?attr/selectableItemBackground" />
 
@@ -367,11 +368,12 @@
             <TextView
                 android:id="@+id/btn_temp_confirm"
                 android:layout_width="0dp"
-                android:layout_height="52dp"
+                android:layout_height="56dp"
                 android:layout_weight="1"
                 android:gravity="center"
                 android:text="@string/confirm"
-                android:textSize="15sp"
+                android:textSize="16sp"
+                android:textAllCaps="true"
                 android:textStyle="bold"
                 android:textColor="@color/white"
                 android:background="@color/accent" />
@@ -502,11 +504,12 @@
             <TextView
                 android:id="@+id/btn_id_cancel"
                 android:layout_width="0dp"
-                android:layout_height="52dp"
+                android:layout_height="56dp"
                 android:layout_weight="1"
                 android:gravity="center"
                 android:text="@string/cancel"
-                android:textSize="15sp"
+                android:textSize="16sp"
+                android:textAllCaps="true"
                 android:textColor="@color/text_secondary"
                 android:background="?attr/selectableItemBackground" />
 
@@ -518,11 +521,12 @@
             <TextView
                 android:id="@+id/btn_id_confirm"
                 android:layout_width="0dp"
-                android:layout_height="52dp"
+                android:layout_height="56dp"
                 android:layout_weight="1"
                 android:gravity="center"
                 android:text="@string/confirm"
-                android:textSize="15sp"
+                android:textSize="16sp"
+                android:textAllCaps="true"
                 android:textStyle="bold"
                 android:textColor="@color/white"
                 android:background="@color/accent" />
