@@ -473,11 +473,6 @@ class CheckinActivity : AppCompatActivity() {
             if (idBuffer.length < 5) {
                 idBuffer.append(digit)
                 refreshIdDisplay()
-                if (idBuffer.length == 5) {
-                    val id = idBuffer.toString()
-                    hideManualIdOverlay()
-                    viewModel.onStudentIdEntered(id)
-                }
             }
         }
 
