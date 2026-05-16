@@ -176,11 +176,6 @@ class CheckinActivity : AppCompatActivity() {
             else -> binding.chipMorning.isChecked = true
         }
 
-        binding.btnSync.setOnClickListener {
-            viewModel.syncPending()
-            Toast.makeText(this, R.string.syncing, Toast.LENGTH_SHORT).show()
-        }
-
         binding.btnManualInput.setOnClickListener { showManualInputDialog() }
         binding.btnSettings.setOnClickListener { showSettingsDialog() }
 
@@ -300,14 +295,10 @@ class CheckinActivity : AppCompatActivity() {
             }
         }
 
-        viewModel.pendingCount.observe(this) { count ->
-            binding.textStatQueued.text = count.toString()
-            binding.btnSync.visibility = if (count > 0) View.VISIBLE else View.GONE
-        }
-
-        viewModel.todayCount.observe(this) { binding.textStatChecked.text = it.toString() }
-        viewModel.lateCount.observe(this) { binding.textStatLate.text = it.toString() }
-        viewModel.feverCount.observe(this) { binding.textStatFever.text = it.toString() }
+        viewModel.pendingCount.observe(this) { }
+        viewModel.todayCount.observe(this) { }
+        viewModel.lateCount.observe(this) { }
+        viewModel.feverCount.observe(this) { }
     }
 
     private fun showIdle() {
