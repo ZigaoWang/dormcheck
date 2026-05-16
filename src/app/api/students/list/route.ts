@@ -23,9 +23,13 @@ export async function GET(req: NextRequest) {
     house = houseFilter(user, requestedHouse);
   }
 
+  const showAll = url.searchParams.get("all") === "true";
+
   const conditions = [];
-  if (house) conditions.push(eq(students.house, house));
-  else if (house === null && requestedHouse === "unassigned") conditions.push(eq(students.house, null as unknown as string));
+  if (!showAll) {
+    if (house) conditions.push(eq(students.house, house));
+    else if (house === null && requestedHouse === "unassigned") conditions.push(eq(students.house, null as unknown as string));
+  }
   if (search) {
     conditions.push(
       or(

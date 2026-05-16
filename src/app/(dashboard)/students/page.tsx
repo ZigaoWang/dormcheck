@@ -34,6 +34,7 @@ export default function StudentsPage() {
   const [students, setStudents] = useState<Student[]>([]);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
+  const [viewAll, setViewAll] = useState(false);
 
   const [importOpen, setImportOpen] = useState(false);
   const [importing, setImporting] = useState(false);
@@ -56,12 +57,16 @@ export default function StudentsPage() {
 
   const fetchStudents = useCallback(async () => {
     const params = new URLSearchParams();
-    if (!isAdmin && userHouse) params.set("house", userHouse);
+    if (viewAll) {
+      params.set("all", "true");
+    } else if (!isAdmin && userHouse) {
+      params.set("house", userHouse);
+    }
     const res = await fetch(`/api/students/list?${params}`);
     const data = await res.json();
     setStudents(data);
     setLoading(false);
-  }, [userHouse, isAdmin]);
+  }, [userHouse, isAdmin, viewAll]);
 
   useEffect(() => {
     fetchStudents();
@@ -165,10 +170,35 @@ export default function StudentsPage() {
     fetchStudents();
   }
 
+  async function handleAssignToMyHouse(studentId: string) {
+    await fetch("/api/students/list", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ studentId, house: userHouse }),
+    });
+    fetchStudents();
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <h1 className="text-xl font-semibold">Students</h1>
+        <div className="flex items-center gap-3">
+          <h1 className="text-xl font-semibold">Students</h1>
+          <div className="flex rounded-md border text-sm overflow-hidden">
+            <button
+              onClick={() => setViewAll(false)}
+              className={cn("px-3 py-1", !viewAll ? "bg-gray-100 font-medium" : "text-gray-400")}
+            >
+              My House
+            </button>
+            <button
+              onClick={() => setViewAll(true)}
+              className={cn("px-3 py-1 border-l", viewAll ? "bg-gray-100 font-medium" : "text-gray-400")}
+            >
+              All Students
+            </button>
+          </div>
+        </div>
         <div className="flex gap-2">
           <Dialog open={importOpen} onOpenChange={setImportOpen}>
             <DialogTrigger render={<Button variant="outline" size="sm" />}>
@@ -319,17 +349,25 @@ export default function StudentsPage() {
                   </td>
                   <td className="px-3 py-2 text-right">
                     <div className="flex justify-end gap-1">
-                      <Button variant="outline" size="sm" onClick={() => openEdit(s)}>
-                        Edit
-                      </Button>
-                      {s.isActive ? (
-                        <Button variant="outline" size="sm" onClick={() => handleDeactivate(s.studentId)}>
-                          Deactivate
+                      {viewAll && !isAdmin && s.house !== userHouse && userHouse ? (
+                        <Button variant="outline" size="sm" onClick={() => handleAssignToMyHouse(s.studentId)}>
+                          Add to My House
                         </Button>
                       ) : (
-                        <Button variant="outline" size="sm" onClick={() => handleReactivate(s.studentId)}>
-                          Reactivate
-                        </Button>
+                        <>
+                          <Button variant="outline" size="sm" onClick={() => openEdit(s)}>
+                            Edit
+                          </Button>
+                          {s.isActive ? (
+                            <Button variant="outline" size="sm" onClick={() => handleDeactivate(s.studentId)}>
+                              Deactivate
+                            </Button>
+                          ) : (
+                            <Button variant="outline" size="sm" onClick={() => handleReactivate(s.studentId)}>
+                              Reactivate
+                            </Button>
+                          )}
+                        </>
                       )}
                     </div>
                   </td>
