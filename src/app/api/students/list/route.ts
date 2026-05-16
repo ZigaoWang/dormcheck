@@ -101,7 +101,9 @@ export async function PUT(req: NextRequest) {
     return NextResponse.json({ error: "Student not found" }, { status: 404 });
   }
 
-  if (!user.isAdmin && user.house !== existing.house) {
+  // Allow non-admin to claim an unassigned student into their own house
+  const isClaimingUnassigned = !existing.house && studentHouse === user.house;
+  if (!user.isAdmin && user.house !== existing.house && !isClaimingUnassigned) {
     return NextResponse.json({ error: "Cannot edit students from another house" }, { status: 403 });
   }
 

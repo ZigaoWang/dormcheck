@@ -152,7 +152,8 @@ export default function StudentsPage() {
     setSaving(false);
   }
 
-  async function handleDeactivate(studentId: string) {
+  async function handleDelete(studentId: string) {
+    if (!confirm("Remove this student?")) return;
     await fetch("/api/students/list", {
       method: "DELETE",
       headers: { "Content-Type": "application/json" },
@@ -161,22 +162,13 @@ export default function StudentsPage() {
     fetchStudents();
   }
 
-  async function handleReactivate(studentId: string) {
-    await fetch("/api/students/list", {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ studentId, isActive: true }),
-    });
-    fetchStudents();
-  }
-
   async function handleAssignToMyHouse(studentId: string) {
-    await fetch("/api/students/list", {
+    const res = await fetch("/api/students/list", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ studentId, house: userHouse }),
     });
-    fetchStudents();
+    if (res.ok) fetchStudents();
   }
 
   return (
@@ -200,98 +192,94 @@ export default function StudentsPage() {
           </div>
         </div>
         <div className="flex gap-2">
-          <Dialog open={importOpen} onOpenChange={setImportOpen}>
-            <DialogTrigger render={<Button variant="outline" size="sm" />}>
-              Import CSV
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Import Students (TSV or CSV)</DialogTitle>
-              </DialogHeader>
-              <form onSubmit={handleImport} className="space-y-4">
-                <p className="text-sm text-gray-500">
-                  Accepts TSV (student_id, name, grade) or CSV (student_id, name, grade, house). House is optional — assigned automatically on first scan.
-                </p>
-                <Input type="file" name="file" accept=".csv,.tsv,.txt" required />
-                {importResult && (
-                  <p className={cn(
-                    "text-sm",
-                    importResult.startsWith("Error") ? "text-red-600" : "text-gray-600"
-                  )}>
-                    {importResult}
-                  </p>
-                )}
-                <Button type="submit" disabled={importing} className="w-full">
-                  {importing ? "Importing..." : "Upload & Import"}
-                </Button>
-              </form>
-            </DialogContent>
-          </Dialog>
-
-          <Dialog open={addOpen} onOpenChange={setAddOpen}>
-            <DialogTrigger render={<Button size="sm" />}>
-              Add Student
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Add Student</DialogTitle>
-              </DialogHeader>
-              <form onSubmit={handleAdd} className="space-y-4">
-                <div className="space-y-2">
-                  <Label>Student ID</Label>
-                  <Input
-                    value={addForm.studentId}
-                    onChange={(e) => setAddForm({ ...addForm, studentId: e.target.value })}
-                    placeholder="22341"
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>Name</Label>
-                  <Input
-                    value={addForm.name}
-                    onChange={(e) => setAddForm({ ...addForm, name: e.target.value })}
-                    required
-                  />
-                </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-2">
-                    <Label>Grade</Label>
-                    <select
-                      value={addForm.grade}
-                      onChange={(e) => setAddForm({ ...addForm, grade: e.target.value })}
-                      className="h-9 w-full rounded-md border px-3 text-sm"
-                    >
-                      {[9, 10, 11, 12].map((g) => (
-                        <option key={g} value={g}>Year {g}</option>
-                      ))}
-                    </select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label>House</Label>
-                    {isAdmin ? (
-                      <select
-                        value={addForm.house}
-                        onChange={(e) => setAddForm({ ...addForm, house: e.target.value })}
-                        className="h-9 w-full rounded-md border px-3 text-sm"
-                      >
-                        {HOUSES.map((h) => (
-                          <option key={h} value={h}>House {h}</option>
-                        ))}
-                      </select>
-                    ) : (
-                      <Input value={`House ${addForm.house}`} disabled />
+          {isAdmin && (
+            <>
+              <Dialog open={importOpen} onOpenChange={setImportOpen}>
+                <DialogTrigger render={<Button variant="outline" size="sm" />}>
+                  Import CSV
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Import Students (TSV or CSV)</DialogTitle>
+                  </DialogHeader>
+                  <form onSubmit={handleImport} className="space-y-4">
+                    <p className="text-sm text-gray-500">
+                      Accepts TSV (student_id, name, grade) or CSV (student_id, name, grade, house).
+                    </p>
+                    <Input type="file" name="file" accept=".csv,.tsv,.txt" required />
+                    {importResult && (
+                      <p className={cn("text-sm", importResult.startsWith("Error") ? "text-red-600" : "text-gray-600")}>
+                        {importResult}
+                      </p>
                     )}
-                  </div>
-                </div>
-                {addError && <p className="text-sm text-red-600">{addError}</p>}
-                <Button type="submit" disabled={adding} className="w-full">
-                  {adding ? "Adding..." : "Add Student"}
-                </Button>
-              </form>
-            </DialogContent>
-          </Dialog>
+                    <Button type="submit" disabled={importing} className="w-full">
+                      {importing ? "Importing..." : "Upload & Import"}
+                    </Button>
+                  </form>
+                </DialogContent>
+              </Dialog>
 
+              <Dialog open={addOpen} onOpenChange={setAddOpen}>
+                <DialogTrigger render={<Button size="sm" />}>
+                  Add Student
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Add Student</DialogTitle>
+                  </DialogHeader>
+                  <form onSubmit={handleAdd} className="space-y-4">
+                    <div className="space-y-2">
+                      <Label>Student ID</Label>
+                      <Input
+                        value={addForm.studentId}
+                        onChange={(e) => setAddForm({ ...addForm, studentId: e.target.value })}
+                        placeholder="22341"
+                        required
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Name</Label>
+                      <Input
+                        value={addForm.name}
+                        onChange={(e) => setAddForm({ ...addForm, name: e.target.value })}
+                        required
+                      />
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="space-y-2">
+                        <Label>Grade</Label>
+                        <select
+                          value={addForm.grade}
+                          onChange={(e) => setAddForm({ ...addForm, grade: e.target.value })}
+                          className="h-9 w-full rounded-md border px-3 text-sm"
+                        >
+                          {[9, 10, 11, 12].map((g) => (
+                            <option key={g} value={g}>Year {g}</option>
+                          ))}
+                        </select>
+                      </div>
+                      <div className="space-y-2">
+                        <Label>House</Label>
+                        <select
+                          value={addForm.house}
+                          onChange={(e) => setAddForm({ ...addForm, house: e.target.value })}
+                          className="h-9 w-full rounded-md border px-3 text-sm"
+                        >
+                          {HOUSES.map((h) => (
+                            <option key={h} value={h}>House {h}</option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+                    {addError && <p className="text-sm text-red-600">{addError}</p>}
+                    <Button type="submit" disabled={adding} className="w-full">
+                      {adding ? "Adding..." : "Add Student"}
+                    </Button>
+                  </form>
+                </DialogContent>
+              </Dialog>
+            </>
+          )}
           <Link href="/students/bind">
             <Button variant="outline" size="sm">Bind Cards</Button>
           </Link>
@@ -317,54 +305,45 @@ export default function StudentsPage() {
                 <th className="px-3 py-2 font-normal">Year</th>
                 <th className="px-3 py-2 font-normal">House</th>
                 <th className="px-3 py-2 font-normal">Card</th>
-                <th className="px-3 py-2 font-normal">Status</th>
                 <th className="px-3 py-2 font-normal"></th>
               </tr>
             </thead>
             <tbody>
               {filtered.map((s) => (
-                <tr key={s.studentId} className={cn(
-                  "border-b last:border-0",
-                  !s.isActive && "opacity-40"
-                )}>
+                <tr key={s.studentId} className="border-b last:border-0">
                   <td className="px-3 py-2 text-gray-400">{s.studentId}</td>
                   <td className="px-3 py-2 font-medium">{s.name}</td>
-                  <td className="px-3 py-2">{s.grade}</td>
+                  <td className="px-3 py-2">Y{s.grade}</td>
                   <td className="px-3 py-2">
-                    {s.house ?? <span className="text-gray-300">—</span>}
+                    {s.house ? `House ${s.house}` : <span className="text-amber-500 text-xs">Unassigned</span>}
                   </td>
                   <td className="px-3 py-2">
                     {s.uid ? (
-                      <span className="text-gray-500">Bound</span>
+                      <span className="text-green-600 text-xs">Bound</span>
                     ) : (
-                      <span className="text-gray-300">—</span>
-                    )}
-                  </td>
-                  <td className="px-3 py-2">
-                    {s.isActive ? (
-                      <span className="text-gray-500">Active</span>
-                    ) : (
-                      <span className="text-gray-400">Inactive</span>
+                      <span className="text-gray-300 text-xs">No card</span>
                     )}
                   </td>
                   <td className="px-3 py-2 text-right">
                     <div className="flex justify-end gap-1">
-                      {viewAll && !isAdmin && s.house !== userHouse && userHouse ? (
-                        <Button variant="outline" size="sm" onClick={() => handleAssignToMyHouse(s.studentId)}>
-                          Add to My House
+                      {viewAll && !isAdmin && s.house !== userHouse ? (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleAssignToMyHouse(s.studentId)}
+                          disabled={s.house !== null && s.house !== userHouse}
+                          title={s.house && s.house !== userHouse ? "Already assigned to another house" : ""}
+                        >
+                          {s.house && s.house !== userHouse ? "Other House" : "Add to My House"}
                         </Button>
                       ) : (
                         <>
                           <Button variant="outline" size="sm" onClick={() => openEdit(s)}>
                             Edit
                           </Button>
-                          {s.isActive ? (
-                            <Button variant="outline" size="sm" onClick={() => handleDeactivate(s.studentId)}>
-                              Deactivate
-                            </Button>
-                          ) : (
-                            <Button variant="outline" size="sm" onClick={() => handleReactivate(s.studentId)}>
-                              Reactivate
+                          {isAdmin && (
+                            <Button variant="outline" size="sm" onClick={() => handleDelete(s.studentId)}>
+                              Delete
                             </Button>
                           )}
                         </>
@@ -375,8 +354,8 @@ export default function StudentsPage() {
               ))}
               {filtered.length === 0 && (
                 <tr>
-                  <td colSpan={7} className="px-3 py-8 text-center text-sm text-gray-400">
-                    {search ? "No students match your search." : "No students yet. Import a CSV or add one."}
+                  <td colSpan={6} className="px-3 py-8 text-center text-sm text-gray-400">
+                    {search ? "No students match your search." : "No students found."}
                   </td>
                 </tr>
               )}
