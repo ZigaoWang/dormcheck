@@ -1,6 +1,8 @@
 package com.dormcheck.app.ui.checkin
 
+import android.Manifest
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.nfc.NfcAdapter
 import android.os.Bundle
 import android.provider.Settings
@@ -8,8 +10,11 @@ import android.view.KeyEvent
 import android.view.View
 import android.view.inputmethod.EditorInfo
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
+import androidx.core.content.FileProvider
 import androidx.lifecycle.ViewModelProvider
 import com.dormcheck.app.DormCheckApp
 import com.dormcheck.app.R
@@ -21,6 +26,10 @@ import com.dormcheck.app.domain.model.CheckinResult
 import com.dormcheck.app.ui.setup.SetupActivity
 import com.dormcheck.app.util.FeedbackHelper
 import com.dormcheck.app.util.NetworkMonitor
+import java.io.File
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 class CheckinActivity : AppCompatActivity() {
 
@@ -34,6 +43,23 @@ class CheckinActivity : AppCompatActivity() {
     private val tempBuffer = StringBuilder()
     private val idBuffer = StringBuilder()
     private var thermometerAvailable = false
+
+    private var photoFile: File? = null
+    private val cameraLauncher = registerForActivityResult(ActivityResultContracts.TakePicture()) { success ->
+        if (success && photoFile != null) {
+            viewModel.submitTechHandin(photoFile!!)
+        } else {
+            Toast.makeText(this, "Photo cancelled", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private val cameraPermissionLauncher = registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+        if (granted) {
+            launchCamera()
+        } else {
+            Toast.makeText(this, "Camera permission required", Toast.LENGTH_SHORT).show()
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -117,6 +143,10 @@ class CheckinActivity : AppCompatActivity() {
             return super.dispatchKeyEvent(event)
         }
 
+        if (binding.overlayManualId.visibility == View.VISIBLE) {
+            return super.dispatchKeyEvent(event)
+        }
+
         if (event.action == KeyEvent.ACTION_DOWN) {
             val char = event.unicodeChar.toChar()
             if (char.isDigit()) {
@@ -177,18 +207,27 @@ class CheckinActivity : AppCompatActivity() {
     private fun updateModeDisplay() {
         val label = when (viewModel.checkType.value) {
             CheckType.STUDYHALL -> "Study Hall ▾"
+            CheckType.TECH_HANDIN -> "Tech Hand-in ▾"
             else -> "Morning ▾"
         }
         binding.textMode.text = label
     }
 
     private fun showModeSelector() {
-        val modes = arrayOf("Morning", "Study Hall")
-        val current = if (viewModel.checkType.value == CheckType.STUDYHALL) 1 else 0
+        val modes = arrayOf("Morning", "Study Hall", "Tech Hand-in")
+        val current = when (viewModel.checkType.value) {
+            CheckType.STUDYHALL -> 1
+            CheckType.TECH_HANDIN -> 2
+            else -> 0
+        }
         AlertDialog.Builder(this)
             .setTitle("Check Mode")
             .setSingleChoiceItems(modes, current) { dialog, which ->
-                val type = if (which == 0) CheckType.MORNING else CheckType.STUDYHALL
+                val type = when (which) {
+                    1 -> CheckType.STUDYHALL
+                    2 -> CheckType.TECH_HANDIN
+                    else -> CheckType.MORNING
+                }
                 viewModel.setCheckType(type)
                 updateModeDisplay()
                 dialog.dismiss()
@@ -300,6 +339,7 @@ class CheckinActivity : AppCompatActivity() {
                 is CheckinResult.Idle -> showIdle()
                 is CheckinResult.Processing -> showProcessing()
                 is CheckinResult.AwaitingTemperature -> showTemperatureInput(result)
+                is CheckinResult.AwaitingTechHandin -> showTechHandinPrompt(result)
                 is CheckinResult.StudentNotFound -> showStudentNotFound(result)
                 is CheckinResult.Success -> showSuccess(result)
                 is CheckinResult.Late -> showLate(result)
@@ -551,6 +591,83 @@ class CheckinActivity : AppCompatActivity() {
                 }
             }
             .show()
+    }
+
+    private fun showTechHandinPrompt(result: CheckinResult.AwaitingTechHandin) {
+        binding.progressCheckin.visibility = View.GONE
+
+        if (result.isFirstTime) {
+            showFirstTimeLockerSetup(result)
+            return
+        }
+
+        val devices = mutableListOf<String>()
+        if (result.hasPhone) devices.add("Phone")
+        if (result.hasLaptop) devices.add("Laptop")
+        if (result.hasIpad) devices.add("iPad")
+
+        val message = buildString {
+            append("Student: ${result.name ?: result.studentId}\n\n")
+            append("Expected devices:\n")
+            devices.forEach { append("  • $it\n") }
+            append("\nTake a photo of the locker with devices inside.")
+        }
+
+        AlertDialog.Builder(this)
+            .setTitle("Tech Hand-in")
+            .setMessage(message)
+            .setPositiveButton("Take Photo") { _, _ ->
+                requestCameraAndShoot()
+            }
+            .setNegativeButton("Cancel") { _, _ ->
+                viewModel.cancelTechHandin()
+            }
+            .setCancelable(false)
+            .show()
+    }
+
+    private fun showFirstTimeLockerSetup(result: CheckinResult.AwaitingTechHandin) {
+        val studentId = result.studentId ?: return
+        val view = layoutInflater.inflate(R.layout.dialog_locker_setup, null)
+        val cbPhone = view.findViewById<android.widget.CheckBox>(R.id.cb_phone)
+        val cbLaptop = view.findViewById<android.widget.CheckBox>(R.id.cb_laptop)
+        val cbIpad = view.findViewById<android.widget.CheckBox>(R.id.cb_ipad)
+
+        cbPhone.isChecked = true
+        cbLaptop.isChecked = true
+        cbIpad.isChecked = false
+
+        AlertDialog.Builder(this)
+            .setTitle("First-time Setup: ${result.name ?: studentId}")
+            .setView(view)
+            .setPositiveButton("Save & Continue") { _, _ ->
+                viewModel.setupLockerAndContinue(
+                    studentId,
+                    cbPhone.isChecked, cbLaptop.isChecked, cbIpad.isChecked
+                )
+            }
+            .setNegativeButton("Cancel") { _, _ ->
+                viewModel.cancelTechHandin()
+            }
+            .setCancelable(false)
+            .show()
+    }
+
+    private fun requestCameraAndShoot() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
+            launchCamera()
+        } else {
+            cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
+        }
+    }
+
+    private fun launchCamera() {
+        val timestamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())
+        val imageFile = File(cacheDir, "tech_handin_${timestamp}.jpg")
+        photoFile = imageFile
+
+        val uri = FileProvider.getUriForFile(this, "${packageName}.fileprovider", imageFile)
+        cameraLauncher.launch(uri)
     }
 
     private fun setupNetworkMonitor() {

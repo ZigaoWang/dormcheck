@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { checkins, students } from "@/lib/db/schema";
+import { checkins, students, lockers } from "@/lib/db/schema";
 import { eq, and, gte, lt, inArray, desc } from "drizzle-orm";
 import { getSessionUser, houseFilter } from "@/lib/session";
 
@@ -10,7 +10,7 @@ export async function GET(req: NextRequest) {
 
   const url = new URL(req.url);
   const dateStr = url.searchParams.get("date") || new Date().toISOString().split("T")[0];
-  const type = url.searchParams.get("type") as "morning" | "studyhall" | null;
+  const type = url.searchParams.get("type") as "morning" | "studyhall" | "tech_handin" | null;
   const requestedHouse = url.searchParams.get("house");
   const house = houseFilter(user, requestedHouse);
 
@@ -19,6 +19,7 @@ export async function GET(req: NextRequest) {
 
   const studentConditions = [eq(students.isActive, true)];
   if (house) studentConditions.push(eq(students.house, house));
+  if (type === "tech_handin") studentConditions.push(inArray(students.grade, [9, 10]));
 
   const houseStudents = await db
     .select()
@@ -29,7 +30,7 @@ export async function GET(req: NextRequest) {
   const houseStudentIds = houseStudents.map((s) => s.studentId);
 
   if (houseStudentIds.length === 0) {
-    return NextResponse.json({ checkins: [], missing: [] });
+    return NextResponse.json({ checkins: [], missing: [], lockers: [] });
   }
 
   const checkinConditions = [
@@ -48,8 +49,29 @@ export async function GET(req: NextRequest) {
   const checkedInIds = new Set(dayCheckins.map((c) => c.studentId));
   const missingStudents = houseStudents.filter((s) => !checkedInIds.has(s.studentId));
 
+  let lockerData: Array<{
+    studentId: string;
+    hasPhone: boolean;
+    hasLaptop: boolean;
+    hasIpad: boolean;
+  }> = [];
+
+  if (type === "tech_handin") {
+    const lockerRows = await db
+      .select()
+      .from(lockers)
+      .where(inArray(lockers.studentId, houseStudentIds));
+    lockerData = lockerRows.map((l) => ({
+      studentId: l.studentId,
+      hasPhone: l.hasPhone,
+      hasLaptop: l.hasLaptop,
+      hasIpad: l.hasIpad,
+    }));
+  }
+
   return NextResponse.json({
     checkins: dayCheckins,
     missing: missingStudents,
+    ...(type === "tech_handin" && { lockers: lockerData }),
   });
 }

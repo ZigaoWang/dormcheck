@@ -68,6 +68,7 @@ export async function GET(req: NextRequest) {
     totalStudents: total,
     morning: stats(byType("morning")),
     studyhall: stats(byType("studyhall")),
+    tech_handin: stats(byType("tech_handin")),
     all: stats(dayCheckins),
   });
 }

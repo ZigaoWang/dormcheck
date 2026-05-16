@@ -21,7 +21,7 @@ export async function POST(req: NextRequest) {
   }
 
   const body = await req.json();
-  const { uid, student_id, temperature, check_type, device_id, client_timestamp } = body;
+  const { uid, student_id, temperature, check_type, device_id, client_timestamp, photo_url } = body;
 
   if (!uid && !student_id) {
     return NextResponse.json(
@@ -37,7 +37,7 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  if (!["morning", "evening", "studyhall"].includes(check_type)) {
+  if (!["morning", "evening", "studyhall", "tech_handin"].includes(check_type)) {
     return NextResponse.json(
       { ok: false, message: "Invalid check_type" },
       { status: 400 }
@@ -89,7 +89,7 @@ export async function POST(req: NextRequest) {
   const feverThreshold = cfg?.feverThreshold ?? 37.3;
   const graceMinutes = cfg?.lateGraceMinutes ?? 5;
 
-  const isFever = temperature != null && temperature >= feverThreshold;
+  const isFever = check_type !== "tech_handin" && temperature != null && temperature >= feverThreshold;
 
   let isLate = false;
   const now = client_timestamp ? new Date(client_timestamp) : new Date();
@@ -140,6 +140,7 @@ export async function POST(req: NextRequest) {
         temperature: temperature ?? null,
         isLate,
         isFever,
+        photoUrl: photo_url ?? undefined,
         deviceId: device_id ?? device.id,
         createdAt: now,
       })
@@ -158,6 +159,7 @@ export async function POST(req: NextRequest) {
         checkType: check_type,
         isLate,
         isFever,
+        photoUrl: photo_url ?? null,
         deviceId: device_id ?? device.id,
         createdAt: now,
       })
@@ -180,6 +182,7 @@ export async function POST(req: NextRequest) {
     checkType: row.checkType,
     isLate: row.isLate,
     isFever: row.isFever,
+    photoUrl: row.photoUrl,
     createdAt: row.createdAt,
   });
 

@@ -8,7 +8,11 @@ export default auth((req) => {
   const isDeviceApi =
     req.nextUrl.pathname === "/api/checkin" ||
     req.nextUrl.pathname === "/api/feed/stream" ||
-    req.nextUrl.pathname === "/api/devices/verify";
+    req.nextUrl.pathname === "/api/devices/verify" ||
+    req.nextUrl.pathname === "/api/upload" ||
+    req.nextUrl.pathname.startsWith("/api/upload/") ||
+    req.nextUrl.pathname === "/api/lockers/lookup" ||
+    req.nextUrl.pathname === "/api/lockers";
   const isCheckinPage = req.nextUrl.pathname === "/checkin";
 
   if (isApiAuth || isDeviceApi || isCheckinPage) return NextResponse.next();

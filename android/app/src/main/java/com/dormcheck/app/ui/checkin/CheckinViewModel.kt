@@ -11,6 +11,7 @@ import com.dormcheck.app.domain.model.CheckinResult
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import java.io.File
 
 class CheckinViewModel : ViewModel() {
 
@@ -60,7 +61,7 @@ class CheckinViewModel : ViewModel() {
         viewModelScope.launch {
             val studentInfo = repository.lookupStudent(uid = uid)
             if (studentInfo != null) {
-                _state.value = studentInfo
+                handleStudentFound(studentInfo)
             } else {
                 lastUnknownUid = uid
                 _state.value = CheckinResult.UnknownCard(uid = uid)
@@ -82,10 +83,37 @@ class CheckinViewModel : ViewModel() {
         viewModelScope.launch {
             val studentInfo = repository.lookupStudent(studentId = studentId)
             if (studentInfo != null) {
-                _state.value = studentInfo
+                handleStudentFound(studentInfo)
             } else {
                 _state.value = CheckinResult.StudentNotFound(studentId = studentId)
             }
+        }
+    }
+
+    private suspend fun handleStudentFound(studentInfo: CheckinResult.AwaitingTemperature) {
+        if (_checkType.value == CheckType.TECH_HANDIN) {
+            val sid = studentInfo.studentId ?: pendingStudentId ?: return
+            val locker = repository.lookupLocker(sid)
+            if (locker != null) {
+                _state.postValue(CheckinResult.AwaitingTechHandin(
+                    uid = studentInfo.uid,
+                    studentId = sid,
+                    name = studentInfo.name,
+                    hasPhone = locker.hasPhone,
+                    hasLaptop = locker.hasLaptop,
+                    hasIpad = locker.hasIpad,
+                    isFirstTime = false
+                ))
+            } else {
+                _state.postValue(CheckinResult.AwaitingTechHandin(
+                    uid = studentInfo.uid,
+                    studentId = sid,
+                    name = studentInfo.name,
+                    isFirstTime = true
+                ))
+            }
+        } else {
+            _state.postValue(studentInfo)
         }
     }
 
@@ -141,6 +169,59 @@ class CheckinViewModel : ViewModel() {
                 }
             }
         }
+    }
+
+    fun submitTechHandin(photoFile: File) {
+        val studentId = pendingStudentId ?: (state.value as? CheckinResult.AwaitingTechHandin)?.studentId ?: return
+
+        _state.value = CheckinResult.Processing
+
+        viewModelScope.launch {
+            val photoUrl = repository.uploadPhoto(photoFile, studentId)
+            if (photoUrl == null) {
+                _state.value = CheckinResult.Error("Photo upload failed")
+                scheduleReset()
+                return@launch
+            }
+
+            val result = repository.checkinWithPhoto(studentId, photoUrl)
+            _state.value = result
+            pendingUid = null
+            pendingStudentId = null
+
+            if (result is CheckinResult.Success) {
+                _todayCount.value = (_todayCount.value ?: 0) + if (!result.response.is_update) 1 else 0
+            }
+            scheduleReset()
+        }
+    }
+
+    fun setupLockerAndContinue(studentId: String, hasPhone: Boolean, hasLaptop: Boolean, hasIpad: Boolean) {
+        _state.value = CheckinResult.Processing
+        pendingStudentId = studentId
+
+        viewModelScope.launch {
+            val created = repository.createLocker(studentId, hasPhone, hasLaptop, hasIpad)
+            if (created) {
+                _state.value = CheckinResult.AwaitingTechHandin(
+                    studentId = studentId,
+                    name = (state.value as? CheckinResult.AwaitingTechHandin)?.name,
+                    hasPhone = hasPhone,
+                    hasLaptop = hasLaptop,
+                    hasIpad = hasIpad,
+                    isFirstTime = false
+                )
+            } else {
+                _state.value = CheckinResult.Error("Failed to save locker info")
+                scheduleReset()
+            }
+        }
+    }
+
+    fun cancelTechHandin() {
+        pendingUid = null
+        pendingStudentId = null
+        _state.value = CheckinResult.Idle
     }
 
     fun cancelTemperatureInput() {

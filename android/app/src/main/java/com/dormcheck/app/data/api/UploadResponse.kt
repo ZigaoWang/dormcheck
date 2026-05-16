@@ -1,0 +1,6 @@
+package com.dormcheck.app.data.api
+
+data class UploadResponse(
+    val ok: Boolean,
+    val url: String?
+)

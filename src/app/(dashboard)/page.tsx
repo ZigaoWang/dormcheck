@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 
-type CheckType = "morning" | "studyhall";
+type CheckType = "morning" | "studyhall" | "tech_handin";
 type Status = "ok" | "late" | "fever" | "missing";
 
 const HOUSES = ["A", "B", "C", "D", "E", "F", "G", "H"];
@@ -22,6 +22,7 @@ interface Checkin {
   checkType: string;
   isLate: boolean;
   isFever: boolean;
+  photoUrl: string | null;
   createdAt: string;
 }
 
@@ -39,6 +40,8 @@ interface RosterEntry {
   status: Status;
   temperature: number | null;
   time: string | null;
+  photoUrl: string | null;
+  devices: { hasPhone: boolean; hasLaptop: boolean; hasIpad: boolean } | null;
 }
 
 interface HouseSummary {
@@ -48,6 +51,13 @@ interface HouseSummary {
   missing: number;
   late: number;
   fever: number;
+}
+
+interface LockerInfo {
+  studentId: string;
+  hasPhone: boolean;
+  hasLaptop: boolean;
+  hasIpad: boolean;
 }
 
 function StatusBadge({ status }: { status: Status }) {
@@ -110,9 +120,11 @@ export default function DashboardPage() {
   const [house, setHouse] = useState("");
   const [checkins, setCheckins] = useState<Checkin[]>([]);
   const [missing, setMissing] = useState<Student[]>([]);
+  const [lockerData, setLockerData] = useState<LockerInfo[]>([]);
   const [allHouses, setAllHouses] = useState<HouseSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
 
   useEffect(() => {
     if (status !== "authenticated") return;
@@ -126,6 +138,7 @@ export default function DashboardPage() {
       const data = await res.json();
       setCheckins(data.checkins || []);
       setMissing(data.missing || []);
+      setLockerData(data.lockers || []);
       setLastUpdated(new Date());
     } finally {
       setLoading(false);
@@ -174,28 +187,40 @@ export default function DashboardPage() {
   const lateCount = checkins.filter((c) => c.isLate).length;
   const feverCount = checkins.filter((c) => c.isFever).length;
 
+  const lockerMap = new Map(lockerData.map((l) => [l.studentId, l]));
+
   const buildRoster = (grade: number): RosterEntry[] => {
     const entries: RosterEntry[] = [
       ...checkins
         .filter((c) => c.grade === grade)
-        .map((c) => ({
-          studentId: c.studentId,
-          name: c.name,
-          grade: c.grade,
-          status: (c.isFever ? "fever" : c.isLate ? "late" : "ok") as Status,
-          temperature: c.temperature,
-          time: format(new Date(c.createdAt), "HH:mm"),
-        })),
+        .map((c) => {
+          const locker = lockerMap.get(c.studentId);
+          return {
+            studentId: c.studentId,
+            name: c.name,
+            grade: c.grade,
+            status: (c.isFever ? "fever" : c.isLate ? "late" : "ok") as Status,
+            temperature: c.temperature,
+            time: format(new Date(c.createdAt), "HH:mm"),
+            photoUrl: c.photoUrl,
+            devices: locker ? { hasPhone: locker.hasPhone, hasLaptop: locker.hasLaptop, hasIpad: locker.hasIpad } : null,
+          };
+        }),
       ...missing
         .filter((s) => s.grade === grade)
-        .map((s) => ({
-          studentId: s.studentId,
-          name: s.name,
-          grade: s.grade,
-          status: "missing" as const,
-          temperature: null,
-          time: null,
-        })),
+        .map((s) => {
+          const locker = lockerMap.get(s.studentId);
+          return {
+            studentId: s.studentId,
+            name: s.name,
+            grade: s.grade,
+            status: "missing" as const,
+            temperature: null,
+            time: null,
+            photoUrl: null,
+            devices: locker ? { hasPhone: locker.hasPhone, hasLaptop: locker.hasLaptop, hasIpad: locker.hasIpad } : null,
+          };
+        }),
     ];
     const order: Record<Status, number> = { missing: 0, fever: 1, late: 2, ok: 3 };
     return entries.sort((a, b) => order[a.status] - order[b.status] || a.name.localeCompare(b.name));
@@ -252,7 +277,7 @@ export default function DashboardPage() {
 
       {/* Tab selector */}
       <div className="flex gap-1 rounded-lg border bg-gray-50 p-1 w-fit">
-        {(["morning", "studyhall"] as const).map((t) => (
+        {(["morning", "studyhall", "tech_handin"] as const).map((t) => (
           <button
             key={t}
             onClick={() => setTab(t)}
@@ -261,7 +286,7 @@ export default function DashboardPage() {
               tab === t ? "bg-white shadow-sm text-gray-900" : "text-gray-500 hover:text-gray-700"
             )}
           >
-            {t === "morning" ? "Morning" : "Study Hall"}
+            {t === "morning" ? "Morning" : t === "studyhall" ? "Study Hall" : "Tech Hand-in"}
           </button>
         ))}
       </div>
@@ -307,7 +332,7 @@ export default function DashboardPage() {
       {!loading && totalStudents > 0 && (
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
           <StatCard
-            label="Checked In"
+            label={tab === "tech_handin" ? "Handed In" : "Checked In"}
             value={checkins.length}
             total={totalStudents}
             variant={checkins.length === totalStudents ? "ok" : "default"}
@@ -317,16 +342,20 @@ export default function DashboardPage() {
             value={missing.length}
             variant={missing.length > 0 ? "danger" : "ok"}
           />
-          <StatCard
-            label="Late"
-            value={lateCount}
-            variant={lateCount > 0 ? "warn" : "default"}
-          />
-          <StatCard
-            label="High Temp"
-            value={feverCount}
-            variant={feverCount > 0 ? "danger" : "default"}
-          />
+          {tab !== "tech_handin" && (
+            <>
+              <StatCard
+                label="Late"
+                value={lateCount}
+                variant={lateCount > 0 ? "warn" : "default"}
+              />
+              <StatCard
+                label="High Temp"
+                value={feverCount}
+                variant={feverCount > 0 ? "danger" : "default"}
+              />
+            </>
+          )}
         </div>
       )}
 
@@ -337,7 +366,7 @@ export default function DashboardPage() {
         <p className="py-12 text-center text-sm text-gray-400">No students in this house yet.</p>
       ) : (
         <div className="space-y-6">
-          {GRADES.map((grade) => {
+          {(tab === "tech_handin" ? [9, 10] : GRADES).map((grade) => {
             const roster = buildRoster(grade);
             if (roster.length === 0) return null;
             const present = roster.filter((r) => r.status !== "missing").length;
@@ -367,7 +396,14 @@ export default function DashboardPage() {
                       <tr className="border-b bg-gray-50 text-left text-xs text-gray-400">
                         <th className="px-4 py-2.5 font-medium">Name</th>
                         <th className="px-4 py-2.5 font-medium">Status</th>
-                        <th className="px-4 py-2.5 font-medium">Temp</th>
+                        {tab === "tech_handin" ? (
+                          <>
+                            <th className="px-4 py-2.5 font-medium">Devices</th>
+                            <th className="px-4 py-2.5 font-medium">Photo</th>
+                          </>
+                        ) : (
+                          <th className="px-4 py-2.5 font-medium">Temp</th>
+                        )}
                         <th className="px-4 py-2.5 font-medium">Time</th>
                       </tr>
                     </thead>
@@ -388,12 +424,42 @@ export default function DashboardPage() {
                           <td className="px-4 py-2.5">
                             <StatusBadge status={r.status} />
                           </td>
-                          <td className={cn(
-                            "px-4 py-2.5 tabular-nums",
-                            r.status === "fever" ? "font-semibold text-red-600" : "text-gray-500"
-                          )}>
-                            {r.temperature != null ? `${r.temperature.toFixed(1)}°` : "—"}
-                          </td>
+                          {tab === "tech_handin" ? (
+                            <>
+                              <td className="px-4 py-2.5">
+                                {r.devices ? (
+                                  <span className="flex gap-1.5 text-xs">
+                                    {r.devices.hasPhone && <span className="rounded bg-blue-50 px-1.5 py-0.5 text-blue-600">Phone</span>}
+                                    {r.devices.hasLaptop && <span className="rounded bg-purple-50 px-1.5 py-0.5 text-purple-600">Laptop</span>}
+                                    {r.devices.hasIpad && <span className="rounded bg-teal-50 px-1.5 py-0.5 text-teal-600">iPad</span>}
+                                  </span>
+                                ) : (
+                                  <span className="text-xs text-gray-300">Not set</span>
+                                )}
+                              </td>
+                              <td className="px-4 py-2.5">
+                                {r.photoUrl ? (
+                                  <button
+                                    onClick={() => setPhotoPreview(r.photoUrl)}
+                                    className="h-8 w-8 overflow-hidden rounded border hover:ring-2 hover:ring-blue-300"
+                                  >
+                                    <img src={r.photoUrl} alt="" className="h-full w-full object-cover" />
+                                  </button>
+                                ) : r.status !== "missing" ? (
+                                  <span className="text-xs text-gray-300">No photo</span>
+                                ) : (
+                                  <span className="text-xs text-gray-300">—</span>
+                                )}
+                              </td>
+                            </>
+                          ) : (
+                            <td className={cn(
+                              "px-4 py-2.5 tabular-nums",
+                              r.status === "fever" ? "font-semibold text-red-600" : "text-gray-500"
+                            )}>
+                              {r.temperature != null ? `${r.temperature.toFixed(1)}°` : "—"}
+                            </td>
+                          )}
                           <td className="px-4 py-2.5 text-gray-400 tabular-nums">
                             {r.time ?? "—"}
                           </td>
@@ -405,6 +471,28 @@ export default function DashboardPage() {
               </section>
             );
           })}
+        </div>
+      )}
+
+      {/* Photo lightbox */}
+      {photoPreview && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
+          onClick={() => setPhotoPreview(null)}
+        >
+          <div className="relative max-h-[90vh] max-w-[90vw]">
+            <img
+              src={photoPreview}
+              alt="Locker photo"
+              className="max-h-[85vh] rounded-lg object-contain"
+            />
+            <button
+              onClick={() => setPhotoPreview(null)}
+              className="absolute -top-3 -right-3 flex h-8 w-8 items-center justify-center rounded-full bg-white text-gray-600 shadow-lg hover:bg-gray-100"
+            >
+              &times;
+            </button>
+          </div>
         </div>
       )}
     </div>

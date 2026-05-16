@@ -14,6 +14,7 @@ export const checkTypeEnum = pgEnum("check_type", [
   "morning",
   "evening",
   "studyhall",
+  "tech_handin",
 ]);
 
 export const students = pgTable("students", {
@@ -41,6 +42,7 @@ export const checkins = pgTable(
     isLate: boolean("is_late").notNull().default(false),
     isFever: boolean("is_fever").notNull().default(false),
     deviceId: text("device_id"),
+    photoUrl: text("photo_url"),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .defaultNow(),
@@ -78,4 +80,22 @@ export const users = pgTable("users", {
   passwordHash: text("password_hash").notNull(),
   house: text("house"),
   isAdmin: boolean("is_admin").notNull().default(false),
+});
+
+export const lockers = pgTable("lockers", {
+  id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
+  studentId: text("student_id")
+    .notNull()
+    .unique()
+    .references(() => students.studentId),
+  hasPhone: boolean("has_phone").notNull().default(true),
+  hasLaptop: boolean("has_laptop").notNull().default(true),
+  hasIpad: boolean("has_ipad").notNull().default(false),
+  house: text("house"),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
 });

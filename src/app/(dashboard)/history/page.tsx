@@ -88,6 +88,7 @@ export default function HistoryPage() {
             <option value="">All</option>
             <option value="morning">Morning</option>
             <option value="studyhall">Study Hall</option>
+            <option value="tech_handin">Tech Hand-in</option>
           </select>
         </div>
         <Button onClick={handleSearch} size="sm">Search</Button>
@@ -151,7 +152,7 @@ export default function HistoryPage() {
                           <td className="px-4 py-2.5 text-gray-400 tabular-nums">{format(new Date(c.createdAt), "HH:mm")}</td>
                           <td className="px-4 py-2.5 font-medium">{c.name}</td>
                           <td className="px-4 py-2.5 text-gray-400">{c.studentId}</td>
-                          <td className="px-4 py-2.5">{c.checkType === "studyhall" ? "Study Hall" : "Morning"}</td>
+                          <td className="px-4 py-2.5">{c.checkType === "studyhall" ? "Study Hall" : c.checkType === "tech_handin" ? "Tech Hand-in" : "Morning"}</td>
                           <td className={cn("px-4 py-2.5 tabular-nums", c.isFever && "font-semibold text-red-600")}>
                             {c.temperature?.toFixed(1) ?? "—"}
                           </td>

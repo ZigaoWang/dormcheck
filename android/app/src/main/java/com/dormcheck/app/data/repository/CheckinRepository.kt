@@ -1,7 +1,9 @@
 package com.dormcheck.app.data.repository
 
 import com.dormcheck.app.data.api.ApiClient
+import com.dormcheck.app.data.api.CreateLockerRequest
 import com.dormcheck.app.data.api.DormCheckApi
+import com.dormcheck.app.data.api.LockerInfo
 import com.dormcheck.app.data.local.PendingCheckin
 import com.dormcheck.app.data.local.PendingCheckinDao
 import com.dormcheck.app.data.local.PrefsManager
@@ -11,6 +13,11 @@ import com.dormcheck.app.domain.model.CheckinResult
 import com.dormcheck.app.domain.model.CreateStudentRequest
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.MultipartBody
+import okhttp3.RequestBody.Companion.asRequestBody
+import okhttp3.RequestBody.Companion.toRequestBody
+import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -221,6 +228,75 @@ class CheckinRepository(
                 response.isSuccessful && response.body()?.ok == true
             } catch (e: Exception) {
                 false
+            }
+        }
+    }
+
+    suspend fun lookupLocker(studentId: String): LockerInfo? {
+        return withContext(Dispatchers.IO) {
+            try {
+                val response = api.lookupLocker(prefs.apiKey, studentId)
+                if (response.isSuccessful) response.body() else null
+            } catch (e: Exception) {
+                null
+            }
+        }
+    }
+
+    suspend fun uploadPhoto(photoFile: File, studentId: String): String? {
+        return withContext(Dispatchers.IO) {
+            try {
+                val requestBody = photoFile.asRequestBody("image/jpeg".toMediaType())
+                val photoPart = MultipartBody.Part.createFormData("photo", photoFile.name, requestBody)
+                val studentIdBody = studentId.toRequestBody("text/plain".toMediaType())
+                val response = api.uploadPhoto(prefs.apiKey, photoPart, studentIdBody)
+                if (response.isSuccessful) response.body()?.url else null
+            } catch (e: Exception) {
+                null
+            }
+        }
+    }
+
+    suspend fun createLocker(studentId: String, hasPhone: Boolean, hasLaptop: Boolean, hasIpad: Boolean): Boolean {
+        return withContext(Dispatchers.IO) {
+            try {
+                val response = api.createLocker(
+                    prefs.apiKey,
+                    CreateLockerRequest(studentId, hasPhone, hasLaptop, hasIpad)
+                )
+                response.isSuccessful
+            } catch (e: Exception) {
+                false
+            }
+        }
+    }
+
+    suspend fun checkinWithPhoto(studentId: String, photoUrl: String): CheckinResult {
+        val request = CheckinRequest(
+            uid = "",
+            student_id = studentId,
+            temperature = null,
+            check_type = prefs.checkType,
+            device_id = prefs.deviceId,
+            client_timestamp = isoFormat.format(Date()),
+            photo_url = photoUrl
+        )
+
+        return withContext(Dispatchers.IO) {
+            try {
+                val response = api.checkin(prefs.apiKey, request)
+                if (response.isSuccessful) {
+                    val body = response.body()
+                    if (body != null && body.ok) {
+                        CheckinResult.Success(body)
+                    } else {
+                        CheckinResult.Error(body?.error ?: body?.message ?: "Unknown error")
+                    }
+                } else {
+                    CheckinResult.Error("Check-in failed (${response.code()})")
+                }
+            } catch (e: Exception) {
+                CheckinResult.Error("Network error: ${e.localizedMessage}")
             }
         }
     }

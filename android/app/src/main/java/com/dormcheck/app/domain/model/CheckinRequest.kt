@@ -6,5 +6,6 @@ data class CheckinRequest(
     val temperature: Float? = null,
     val check_type: String,
     val device_id: String? = null,
-    val client_timestamp: String? = null
+    val client_timestamp: String? = null,
+    val photo_url: String? = null
 )
