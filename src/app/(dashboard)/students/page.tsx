@@ -317,78 +317,81 @@ export default function StudentsPage() {
 
       {loading ? (
         <p className="py-8 text-center text-sm text-gray-400">Loading...</p>
+      ) : filtered.length === 0 ? (
+        <p className="py-8 text-center text-sm text-gray-400">No students found.</p>
       ) : (
-        <div className="rounded-lg border">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b text-left text-xs text-gray-400">
-                <th className="px-3 py-2 font-normal">ID</th>
-                <th className="px-3 py-2 font-normal">Name</th>
-                <th className="px-3 py-2 font-normal">Year</th>
-                <th className="px-3 py-2 font-normal">House</th>
-                <th className="px-3 py-2 font-normal">Card</th>
-                <th className="px-3 py-2 font-normal"></th>
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.map((s) => (
-                <tr key={s.studentId} className="border-b last:border-0">
-                  <td className="px-3 py-2 text-gray-400">{s.studentId}</td>
-                  <td className="px-3 py-2 font-medium">{s.name}</td>
-                  <td className="px-3 py-2">Y{s.grade}</td>
-                  <td className="px-3 py-2">
-                    {s.house ? `House ${s.house}` : <span className="text-amber-500 text-xs">Unassigned</span>}
-                  </td>
-                  <td className="px-3 py-2">
-                    {s.uid ? (
-                      <span className="text-green-600 text-xs">Bound</span>
-                    ) : (
-                      <span className="text-gray-300 text-xs">No card</span>
-                    )}
-                  </td>
-                  <td className="px-3 py-2 text-right">
-                    <div className="flex justify-end gap-1">
-                      {viewAll && !isAdmin && s.house !== userHouse ? (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleAssignToMyHouse(s.studentId)}
-                          disabled={s.house !== null && s.house !== userHouse}
-                          title={s.house && s.house !== userHouse ? "Already assigned to another house" : ""}
-                        >
-                          {s.house && s.house !== userHouse ? "Other House" : "Add to My House"}
-                        </Button>
-                      ) : (
-                        <>
-                          {isAdmin ? (
-                            <>
-                              <Button variant="outline" size="sm" onClick={() => openEdit(s)}>
-                                Edit
-                              </Button>
-                              <Button variant="outline" size="sm" onClick={() => handleDelete(s.studentId)}>
-                                Delete
-                              </Button>
-                            </>
-                          ) : (
-                            <Button variant="outline" size="sm" onClick={() => handleRemoveFromHouse(s.studentId)}>
-                              Remove from House
-                            </Button>
-                          )}
-                        </>
-                      )}
-                    </div>
-                  </td>
-                </tr>
-              ))}
-              {filtered.length === 0 && (
-                <tr>
-                  <td colSpan={6} className="px-3 py-8 text-center text-sm text-gray-400">
-                    {search ? "No students match your search." : "No students found."}
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+        <div className="space-y-6">
+          {[9, 10, 11, 12].map((grade) => {
+            const rows = filtered.filter((s) => s.grade === grade);
+            if (rows.length === 0) return null;
+            return (
+              <section key={grade}>
+                <div className="mb-2 flex items-center gap-2">
+                  <h2 className="text-sm font-semibold">Year {grade}</h2>
+                  <span className="text-xs text-gray-400">{rows.length} students</span>
+                </div>
+                <div className="rounded-xl border bg-white overflow-hidden">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b bg-gray-50 text-left text-xs text-gray-400">
+                        <th className="px-4 py-2.5 font-medium">ID</th>
+                        <th className="px-4 py-2.5 font-medium">Name</th>
+                        <th className="px-4 py-2.5 font-medium">House</th>
+                        <th className="px-4 py-2.5 font-medium">Card</th>
+                        <th className="px-4 py-2.5 font-medium"></th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {rows.map((s) => (
+                        <tr key={s.studentId} className="border-b last:border-0">
+                          <td className="px-4 py-2.5 text-gray-400">{s.studentId}</td>
+                          <td className="px-4 py-2.5 font-medium">{s.name}</td>
+                          <td className="px-4 py-2.5">
+                            {s.house ? `House ${s.house}` : <span className="text-amber-500 text-xs">Unassigned</span>}
+                          </td>
+                          <td className="px-4 py-2.5">
+                            {s.uid ? (
+                              <span className="text-green-600 text-xs">Bound</span>
+                            ) : (
+                              <span className="text-gray-300 text-xs">No card</span>
+                            )}
+                          </td>
+                          <td className="px-4 py-2.5 text-right">
+                            <div className="flex justify-end gap-1">
+                              {viewAll && !isAdmin && s.house !== userHouse ? (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => handleAssignToMyHouse(s.studentId)}
+                                  disabled={s.house !== null && s.house !== userHouse}
+                                  title={s.house && s.house !== userHouse ? "Already assigned to another house" : ""}
+                                >
+                                  {s.house && s.house !== userHouse ? "Other House" : "Add to My House"}
+                                </Button>
+                              ) : (
+                                <>
+                                  {isAdmin ? (
+                                    <>
+                                      <Button variant="outline" size="sm" onClick={() => openEdit(s)}>Edit</Button>
+                                      <Button variant="outline" size="sm" onClick={() => handleDelete(s.studentId)}>Delete</Button>
+                                    </>
+                                  ) : (
+                                    <Button variant="outline" size="sm" onClick={() => handleRemoveFromHouse(s.studentId)}>
+                                      Remove from House
+                                    </Button>
+                                  )}
+                                </>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </section>
+            );
+          })}
         </div>
       )}
 

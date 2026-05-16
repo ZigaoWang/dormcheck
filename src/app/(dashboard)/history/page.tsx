@@ -116,56 +116,63 @@ export default function HistoryPage() {
       ) : checkins.length === 0 ? (
         <p className="py-8 text-center text-sm text-gray-400">No records found.</p>
       ) : (
-        <>
+        <div className="space-y-6">
           <p className="text-sm text-gray-400">{checkins.length} records</p>
-          <div className="rounded-lg border">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b text-left text-xs text-gray-400">
-                  <th className="px-3 py-2 font-normal">Date</th>
-                  <th className="px-3 py-2 font-normal">Time</th>
-                  <th className="px-3 py-2 font-normal">Name</th>
-                  <th className="px-3 py-2 font-normal">ID</th>
-                  <th className="px-3 py-2 font-normal">Year</th>
-                  <th className="px-3 py-2 font-normal">Type</th>
-                  <th className="px-3 py-2 font-normal">Temp</th>
-                  <th className="px-3 py-2 font-normal">Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {checkins.map((c) => (
-                  <tr key={c.id} className="border-b last:border-0">
-                    <td className="px-3 py-2">
-                      {format(new Date(c.createdAt), "MMM d")}
-                    </td>
-                    <td className="px-3 py-2 text-gray-400">
-                      {format(new Date(c.createdAt), "HH:mm")}
-                    </td>
-                    <td className="px-3 py-2 font-medium">{c.name}</td>
-                    <td className="px-3 py-2 text-gray-400">{c.studentId}</td>
-                    <td className="px-3 py-2">{c.grade}</td>
-                    <td className="px-3 py-2">{c.checkType === "studyhall" ? "Study Hall" : "Morning"}</td>
-                    <td className={cn(
-                      "px-3 py-2",
-                      c.isFever && "font-medium text-red-600"
-                    )}>
-                      {c.temperature?.toFixed(1) ?? "—"}
-                    </td>
-                    <td className="px-3 py-2">
-                      {c.isFever ? (
-                        <span className="text-red-600">High Temp</span>
-                      ) : c.isLate ? (
-                        <span className="text-yellow-600">Late</span>
-                      ) : (
-                        <span className="text-gray-500">OK</span>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </>
+          {[9, 10, 11, 12].map((grade) => {
+            const rows = checkins.filter((c) => c.grade === grade);
+            if (rows.length === 0) return null;
+            return (
+              <section key={grade}>
+                <div className="mb-2 flex items-center gap-2">
+                  <h2 className="text-sm font-semibold">Year {grade}</h2>
+                  <span className="text-xs text-gray-400">{rows.length} records</span>
+                </div>
+                <div className="rounded-xl border bg-white overflow-hidden">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b bg-gray-50 text-left text-xs text-gray-400">
+                        <th className="px-4 py-2.5 font-medium">Date</th>
+                        <th className="px-4 py-2.5 font-medium">Time</th>
+                        <th className="px-4 py-2.5 font-medium">Name</th>
+                        <th className="px-4 py-2.5 font-medium">ID</th>
+                        <th className="px-4 py-2.5 font-medium">Type</th>
+                        <th className="px-4 py-2.5 font-medium">Temp</th>
+                        <th className="px-4 py-2.5 font-medium">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {rows.map((c) => (
+                        <tr key={c.id} className={cn(
+                          "border-b last:border-0",
+                          c.isFever && "bg-orange-50/50",
+                          c.isLate && !c.isFever && "bg-yellow-50/50",
+                        )}>
+                          <td className="px-4 py-2.5">{format(new Date(c.createdAt), "MMM d")}</td>
+                          <td className="px-4 py-2.5 text-gray-400 tabular-nums">{format(new Date(c.createdAt), "HH:mm")}</td>
+                          <td className="px-4 py-2.5 font-medium">{c.name}</td>
+                          <td className="px-4 py-2.5 text-gray-400">{c.studentId}</td>
+                          <td className="px-4 py-2.5">{c.checkType === "studyhall" ? "Study Hall" : "Morning"}</td>
+                          <td className={cn("px-4 py-2.5 tabular-nums", c.isFever && "font-semibold text-red-600")}>
+                            {c.temperature?.toFixed(1) ?? "—"}
+                          </td>
+                          <td className="px-4 py-2.5">
+                            {c.isFever ? (
+                              <span className="rounded bg-red-50 px-2 py-0.5 text-xs font-medium text-red-700">High Temp</span>
+                            ) : c.isLate ? (
+                              <span className="rounded bg-yellow-50 px-2 py-0.5 text-xs font-medium text-yellow-700">Late</span>
+                            ) : (
+                              <span className="rounded bg-green-50 px-2 py-0.5 text-xs font-medium text-green-700">OK</span>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </section>
+            );
+          })}
+        </div>
       )}
     </div>
   );
