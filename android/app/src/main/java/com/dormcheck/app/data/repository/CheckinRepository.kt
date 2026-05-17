@@ -271,7 +271,7 @@ class CheckinRepository(
         }
     }
 
-    suspend fun checkinWithPhoto(studentId: String, photoUrl: String): CheckinResult {
+    suspend fun checkinWithPhoto(studentId: String, photoUrl: String, phoneHandedIn: Boolean, laptopHandedIn: Boolean, ipadHandedIn: Boolean): CheckinResult {
         val request = CheckinRequest(
             uid = "",
             student_id = studentId,
@@ -279,7 +279,10 @@ class CheckinRepository(
             check_type = prefs.checkType,
             device_id = prefs.deviceId,
             client_timestamp = isoFormat.format(Date()),
-            photo_url = photoUrl
+            photo_url = photoUrl,
+            phone_handed_in = phoneHandedIn,
+            laptop_handed_in = laptopHandedIn,
+            ipad_handed_in = ipadHandedIn
         )
 
         return withContext(Dispatchers.IO) {

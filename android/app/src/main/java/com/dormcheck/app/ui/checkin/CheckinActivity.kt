@@ -45,12 +45,17 @@ class CheckinActivity : AppCompatActivity() {
     private var thermometerAvailable = false
 
     private var photoFile: File? = null
+    private var techPhoneHandedIn = true
+    private var techLaptopHandedIn = true
+    private var techIpadHandedIn = false
+
     private val cameraLauncher = registerForActivityResult(ActivityResultContracts.TakePicture()) { success ->
         if (success && photoFile != null) {
-            viewModel.submitTechHandin(photoFile!!)
+            viewModel.submitTechHandin(photoFile!!, techPhoneHandedIn, techLaptopHandedIn, techIpadHandedIn)
         } else {
             Toast.makeText(this, "Photo cancelled", Toast.LENGTH_SHORT).show()
         }
+        hideTechHandinOverlay()
     }
 
     private val cameraPermissionLauncher = registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
@@ -144,6 +149,10 @@ class CheckinActivity : AppCompatActivity() {
         }
 
         if (binding.overlayManualId.visibility == View.VISIBLE) {
+            return super.dispatchKeyEvent(event)
+        }
+
+        if (binding.overlayTechHandin.visibility == View.VISIBLE) {
             return super.dispatchKeyEvent(event)
         }
 
@@ -334,6 +343,9 @@ class CheckinActivity : AppCompatActivity() {
         viewModel.state.observe(this) { result ->
             if (result !is CheckinResult.AwaitingTemperature && binding.overlayTemperature.visibility == View.VISIBLE) {
                 hideTemperatureOverlay()
+            }
+            if (result !is CheckinResult.AwaitingTechHandin && binding.overlayTechHandin.visibility == View.VISIBLE) {
+                hideTechHandinOverlay()
             }
             when (result) {
                 is CheckinResult.Idle -> showIdle()
@@ -601,29 +613,33 @@ class CheckinActivity : AppCompatActivity() {
             return
         }
 
-        val devices = mutableListOf<String>()
-        if (result.hasPhone) devices.add("Phone")
-        if (result.hasLaptop) devices.add("Laptop")
-        if (result.hasIpad) devices.add("iPad")
+        binding.textTechStudentName.text = result.name ?: result.studentId ?: ""
+        binding.textTechStudentId.text = result.studentId ?: ""
 
-        val message = buildString {
-            append("Student: ${result.name ?: result.studentId}\n\n")
-            append("Expected devices:\n")
-            devices.forEach { append("  • $it\n") }
-            append("\nTake a photo of the locker with devices inside.")
+        binding.cbTechPhone.isChecked = result.hasPhone
+        binding.cbTechPhone.visibility = if (result.hasPhone) View.VISIBLE else View.GONE
+        binding.cbTechLaptop.isChecked = result.hasLaptop
+        binding.cbTechLaptop.visibility = if (result.hasLaptop) View.VISIBLE else View.GONE
+        binding.cbTechIpad.isChecked = result.hasIpad
+        binding.cbTechIpad.visibility = if (result.hasIpad) View.VISIBLE else View.GONE
+
+        binding.btnTechPhoto.setOnClickListener {
+            techPhoneHandedIn = binding.cbTechPhone.isChecked
+            techLaptopHandedIn = binding.cbTechLaptop.isChecked
+            techIpadHandedIn = binding.cbTechIpad.isChecked
+            requestCameraAndShoot()
         }
 
-        AlertDialog.Builder(this)
-            .setTitle("Tech Hand-in")
-            .setMessage(message)
-            .setPositiveButton("Take Photo") { _, _ ->
-                requestCameraAndShoot()
-            }
-            .setNegativeButton("Cancel") { _, _ ->
-                viewModel.cancelTechHandin()
-            }
-            .setCancelable(false)
-            .show()
+        binding.btnTechCancel.setOnClickListener {
+            hideTechHandinOverlay()
+            viewModel.cancelTechHandin()
+        }
+
+        binding.overlayTechHandin.visibility = View.VISIBLE
+    }
+
+    private fun hideTechHandinOverlay() {
+        binding.overlayTechHandin.visibility = View.GONE
     }
 
     private fun showFirstTimeLockerSetup(result: CheckinResult.AwaitingTechHandin) {

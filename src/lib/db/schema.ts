@@ -43,6 +43,9 @@ export const checkins = pgTable(
     isFever: boolean("is_fever").notNull().default(false),
     deviceId: text("device_id"),
     photoUrl: text("photo_url"),
+    phoneHandedIn: boolean("phone_handed_in"),
+    laptopHandedIn: boolean("laptop_handed_in"),
+    ipadHandedIn: boolean("ipad_handed_in"),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .defaultNow(),

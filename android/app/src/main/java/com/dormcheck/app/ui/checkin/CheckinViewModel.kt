@@ -171,7 +171,7 @@ class CheckinViewModel : ViewModel() {
         }
     }
 
-    fun submitTechHandin(photoFile: File) {
+    fun submitTechHandin(photoFile: File, phoneHandedIn: Boolean, laptopHandedIn: Boolean, ipadHandedIn: Boolean) {
         val studentId = pendingStudentId ?: (state.value as? CheckinResult.AwaitingTechHandin)?.studentId ?: return
 
         _state.value = CheckinResult.Processing
@@ -184,7 +184,7 @@ class CheckinViewModel : ViewModel() {
                 return@launch
             }
 
-            val result = repository.checkinWithPhoto(studentId, photoUrl)
+            val result = repository.checkinWithPhoto(studentId, photoUrl, phoneHandedIn, laptopHandedIn, ipadHandedIn)
             _state.value = result
             pendingUid = null
             pendingStudentId = null

@@ -21,7 +21,7 @@ export async function POST(req: NextRequest) {
   }
 
   const body = await req.json();
-  const { uid, student_id, temperature, check_type, device_id, client_timestamp, photo_url } = body;
+  const { uid, student_id, temperature, check_type, device_id, client_timestamp, photo_url, phone_handed_in, laptop_handed_in, ipad_handed_in } = body;
 
   if (!uid && !student_id) {
     return NextResponse.json(
@@ -141,6 +141,9 @@ export async function POST(req: NextRequest) {
         isLate,
         isFever,
         photoUrl: photo_url ?? undefined,
+        phoneHandedIn: phone_handed_in ?? undefined,
+        laptopHandedIn: laptop_handed_in ?? undefined,
+        ipadHandedIn: ipad_handed_in ?? undefined,
         deviceId: device_id ?? device.id,
         createdAt: now,
       })
@@ -160,6 +163,9 @@ export async function POST(req: NextRequest) {
         isLate,
         isFever,
         photoUrl: photo_url ?? null,
+        phoneHandedIn: phone_handed_in ?? null,
+        laptopHandedIn: laptop_handed_in ?? null,
+        ipadHandedIn: ipad_handed_in ?? null,
         deviceId: device_id ?? device.id,
         createdAt: now,
       })
@@ -183,6 +189,9 @@ export async function POST(req: NextRequest) {
     isLate: row.isLate,
     isFever: row.isFever,
     photoUrl: row.photoUrl,
+    phoneHandedIn: row.phoneHandedIn,
+    laptopHandedIn: row.laptopHandedIn,
+    ipadHandedIn: row.ipadHandedIn,
     createdAt: row.createdAt,
   });
 

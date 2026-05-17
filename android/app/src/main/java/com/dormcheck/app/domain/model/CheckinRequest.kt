@@ -7,5 +7,8 @@ data class CheckinRequest(
     val check_type: String,
     val device_id: String? = null,
     val client_timestamp: String? = null,
-    val photo_url: String? = null
+    val photo_url: String? = null,
+    val phone_handed_in: Boolean? = null,
+    val laptop_handed_in: Boolean? = null,
+    val ipad_handed_in: Boolean? = null
 )

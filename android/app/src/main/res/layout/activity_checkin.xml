@@ -535,4 +535,130 @@
 
     </LinearLayout>
 
+    <!-- Tech Hand-in Overlay -->
+    <LinearLayout
+        android:id="@+id/overlay_tech_handin"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:background="@color/background"
+        android:visibility="gone"
+        android:clickable="true">
+
+        <!-- Student header -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="@color/header_bg"
+            android:padding="16dp"
+            android:gravity="center">
+
+            <TextView
+                android:id="@+id/text_tech_student_name"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textSize="22sp"
+                android:textStyle="bold"
+                android:textColor="@color/white"
+                android:gravity="center" />
+
+            <TextView
+                android:id="@+id/text_tech_student_id"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textSize="13sp"
+                android:fontFamily="monospace"
+                android:textColor="#80FFFFFF"
+                android:gravity="center"
+                android:layout_marginTop="2dp" />
+
+        </LinearLayout>
+
+        <!-- Device checkboxes -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:padding="24dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Uncheck devices NOT handed in"
+                android:textSize="14sp"
+                android:textColor="@color/text_secondary"
+                android:layout_marginBottom="24dp" />
+
+            <CheckBox
+                android:id="@+id/cb_tech_phone"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Phone"
+                android:textSize="22sp"
+                android:minHeight="56dp"
+                android:checked="true" />
+
+            <CheckBox
+                android:id="@+id/cb_tech_laptop"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Laptop"
+                android:textSize="22sp"
+                android:minHeight="56dp"
+                android:checked="true" />
+
+            <CheckBox
+                android:id="@+id/cb_tech_ipad"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="iPad"
+                android:textSize="22sp"
+                android:minHeight="56dp"
+                android:checked="false" />
+
+        </LinearLayout>
+
+        <!-- Bottom buttons -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/btn_tech_cancel"
+                android:layout_width="0dp"
+                android:layout_height="64dp"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:text="@string/cancel"
+                android:textSize="16sp"
+                android:textAllCaps="true"
+                android:textColor="@color/text_secondary"
+                android:background="?attr/selectableItemBackground" />
+
+            <View
+                android:layout_width="1dp"
+                android:layout_height="match_parent"
+                android:background="@color/divider" />
+
+            <TextView
+                android:id="@+id/btn_tech_photo"
+                android:layout_width="0dp"
+                android:layout_height="64dp"
+                android:layout_weight="2"
+                android:gravity="center"
+                android:text="TAKE PHOTO"
+                android:textSize="18sp"
+                android:textAllCaps="true"
+                android:textStyle="bold"
+                android:textColor="@color/white"
+                android:background="@color/success" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
 </FrameLayout>

@@ -23,6 +23,9 @@ interface Checkin {
   isLate: boolean;
   isFever: boolean;
   photoUrl: string | null;
+  phoneHandedIn: boolean | null;
+  laptopHandedIn: boolean | null;
+  ipadHandedIn: boolean | null;
   createdAt: string;
 }
 
@@ -42,6 +45,7 @@ interface RosterEntry {
   time: string | null;
   photoUrl: string | null;
   devices: { hasPhone: boolean; hasLaptop: boolean; hasIpad: boolean } | null;
+  deviceStatus: { phoneHandedIn: boolean | null; laptopHandedIn: boolean | null; ipadHandedIn: boolean | null } | null;
 }
 
 interface HouseSummary {
@@ -186,6 +190,9 @@ export default function DashboardPage() {
   const totalStudents = checkins.length + missing.length;
   const lateCount = checkins.filter((c) => c.isLate).length;
   const feverCount = checkins.filter((c) => c.isFever).length;
+  const incompleteCount = checkins.filter((c) =>
+    c.phoneHandedIn === false || c.laptopHandedIn === false || c.ipadHandedIn === false
+  ).length;
 
   const lockerMap = new Map(lockerData.map((l) => [l.studentId, l]));
 
@@ -204,6 +211,7 @@ export default function DashboardPage() {
             time: format(new Date(c.createdAt), "HH:mm"),
             photoUrl: c.photoUrl,
             devices: locker ? { hasPhone: locker.hasPhone, hasLaptop: locker.hasLaptop, hasIpad: locker.hasIpad } : null,
+            deviceStatus: { phoneHandedIn: c.phoneHandedIn, laptopHandedIn: c.laptopHandedIn, ipadHandedIn: c.ipadHandedIn },
           };
         }),
       ...missing
@@ -219,6 +227,7 @@ export default function DashboardPage() {
             time: null,
             photoUrl: null,
             devices: locker ? { hasPhone: locker.hasPhone, hasLaptop: locker.hasLaptop, hasIpad: locker.hasIpad } : null,
+            deviceStatus: null,
           };
         }),
     ];
@@ -356,6 +365,13 @@ export default function DashboardPage() {
               />
             </>
           )}
+          {tab === "tech_handin" && (
+            <StatCard
+              label="Incomplete"
+              value={incompleteCount}
+              variant={incompleteCount > 0 ? "warn" : "default"}
+            />
+          )}
         </div>
       )}
 
@@ -429,9 +445,24 @@ export default function DashboardPage() {
                               <td className="px-4 py-2.5">
                                 {r.devices ? (
                                   <span className="flex gap-1.5 text-xs">
-                                    {r.devices.hasPhone && <span className="rounded bg-blue-50 px-1.5 py-0.5 text-blue-600">Phone</span>}
-                                    {r.devices.hasLaptop && <span className="rounded bg-purple-50 px-1.5 py-0.5 text-purple-600">Laptop</span>}
-                                    {r.devices.hasIpad && <span className="rounded bg-teal-50 px-1.5 py-0.5 text-teal-600">iPad</span>}
+                                    {r.devices.hasPhone && (
+                                      <span className={cn("rounded px-1.5 py-0.5", r.deviceStatus
+                                        ? (r.deviceStatus.phoneHandedIn === false ? "bg-red-50 text-red-600 line-through" : "bg-green-50 text-green-600")
+                                        : "bg-gray-50 text-gray-500"
+                                      )}>Phone</span>
+                                    )}
+                                    {r.devices.hasLaptop && (
+                                      <span className={cn("rounded px-1.5 py-0.5", r.deviceStatus
+                                        ? (r.deviceStatus.laptopHandedIn === false ? "bg-red-50 text-red-600 line-through" : "bg-green-50 text-green-600")
+                                        : "bg-gray-50 text-gray-500"
+                                      )}>Laptop</span>
+                                    )}
+                                    {r.devices.hasIpad && (
+                                      <span className={cn("rounded px-1.5 py-0.5", r.deviceStatus
+                                        ? (r.deviceStatus.ipadHandedIn === false ? "bg-red-50 text-red-600 line-through" : "bg-green-50 text-green-600")
+                                        : "bg-gray-50 text-gray-500"
+                                      )}>iPad</span>
+                                    )}
                                   </span>
                                 ) : (
                                   <span className="text-xs text-gray-300">Not set</span>
