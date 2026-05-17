@@ -5,7 +5,7 @@ import { eq, and } from "drizzle-orm";
 import { writeFile, mkdir } from "fs/promises";
 import { join } from "path";
 
-const MAX_SIZE = 5 * 1024 * 1024; // 5MB
+const MAX_SIZE = 1 * 1024 * 1024; // 1MB
 const ALLOWED_TYPES = ["image/jpeg", "image/png"];
 
 export async function POST(req: NextRequest) {

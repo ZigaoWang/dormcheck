@@ -1,5 +1,7 @@
 package com.dormcheck.app.data.repository
 
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import com.dormcheck.app.data.api.ApiClient
 import com.dormcheck.app.data.api.CreateLockerRequest
 import com.dormcheck.app.data.api.DormCheckApi
@@ -17,6 +19,7 @@ import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
+import java.io.ByteArrayOutputStream
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -246,15 +249,28 @@ class CheckinRepository(
     suspend fun uploadPhoto(photoFile: File, studentId: String): String? {
         return withContext(Dispatchers.IO) {
             try {
-                val requestBody = photoFile.asRequestBody("image/jpeg".toMediaType())
-                val photoPart = MultipartBody.Part.createFormData("photo", photoFile.name, requestBody)
+                val compressed = compressPhoto(photoFile)
+                val requestBody = compressed.asRequestBody("image/jpeg".toMediaType())
+                val photoPart = MultipartBody.Part.createFormData("photo", compressed.name, requestBody)
                 val studentIdBody = studentId.toRequestBody("text/plain".toMediaType())
                 val response = api.uploadPhoto(prefs.apiKey, photoPart, studentIdBody)
+                compressed.delete()
                 if (response.isSuccessful) response.body()?.url else null
             } catch (e: Exception) {
                 null
             }
         }
+    }
+
+    private fun compressPhoto(file: File): File {
+        val options = BitmapFactory.Options().apply { inSampleSize = 2 }
+        val bitmap = BitmapFactory.decodeFile(file.absolutePath, options) ?: return file
+        val out = ByteArrayOutputStream()
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 40, out)
+        bitmap.recycle()
+        val compressed = File(file.parent, "compressed_${file.name}")
+        compressed.writeBytes(out.toByteArray())
+        return compressed
     }
 
     suspend fun createLocker(studentId: String, hasPhone: Boolean, hasLaptop: Boolean, hasIpad: Boolean): Boolean {
