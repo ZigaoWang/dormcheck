@@ -56,14 +56,14 @@ async function seed() {
     .insert(users)
     .values({
       id: crypto.randomUUID(),
-      email: "admin@dormcheck.local",
+      email: "admin@tally.local",
       name: "Admin",
       passwordHash,
       house: null,
       isAdmin: true,
     })
     .onConflictDoNothing();
-  console.log("  Admin: admin@dormcheck.local / admin123 (all houses)");
+  console.log("  Admin: admin@tally.local / admin123 (all houses)");
 
   // One head-of-house account per house
   for (const h of houses) {
@@ -71,14 +71,14 @@ async function seed() {
       .insert(users)
       .values({
         id: crypto.randomUUID(),
-        email: `house${h.toLowerCase()}@dormcheck.local`,
+        email: `house${h.toLowerCase()}@tally.local`,
         name: `Head of House ${h}`,
         passwordHash,
         house: h,
         isAdmin: false,
       })
       .onConflictDoNothing();
-    console.log(`  House ${h}: house${h.toLowerCase()}@dormcheck.local / admin123`);
+    console.log(`  House ${h}: house${h.toLowerCase()}@tally.local / admin123`);
   }
 
   console.log("\nSeed complete!");

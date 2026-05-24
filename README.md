@@ -1,6 +1,6 @@
-# DormCheck
+# tally
 
-Digital dorm check-in system for YK Pao School. Replaces paper rosters for morning/evening temperature checks.
+Digital check-in system for YK Pao School. Replaces paper rosters for morning/evening temperature checks.
 
 ## Setup
 
@@ -29,7 +29,7 @@ pnpm dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000). Login with:
-- Email: `admin@dormcheck.local`
+- Email: `admin@tally.local`
 - Password: `admin123`
 
 ## Environment Variables
