@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">DormCheck</string>
+    <string name="app_name">tally</string>
     <string name="setup_title">Device Setup</string>
     <string name="setup_server_url">Server URL</string>
     <string name="setup_server_url_hint">https://your-server.com</string>

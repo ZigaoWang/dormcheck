@@ -5,11 +5,11 @@ plugins {
 }
 
 android {
-    namespace 'com.dormcheck.app'
+    namespace 'com.tally.app'
     compileSdk 33
 
     defaultConfig {
-        applicationId "com.dormcheck.app"
+        applicationId "com.tally.app"
         minSdk 24
         targetSdk 28
         versionCode 1

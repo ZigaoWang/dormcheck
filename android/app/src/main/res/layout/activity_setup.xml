@@ -42,7 +42,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
-                android:text="Connect to the DormCheck server"
+                android:text="Connect to the tally server"
                 android:textSize="14sp"
                 android:textColor="@color/text_secondary" />
 
@@ -137,7 +137,7 @@
         android:gravity="center"
         android:textSize="10sp"
         android:textColor="@color/text_secondary"
-        android:text="DormCheck v0.1.0-beta · Engineered by Zigao Wang" />
+        android:text="tally v0.1.0-beta · Engineered by Zigao Wang" />
 
     <!-- Connect button -->
     <TextView

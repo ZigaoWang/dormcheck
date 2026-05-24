@@ -1,6 +1,6 @@
-# DormCheck Android App
+# tally Android App
 
-宿舍签到 PDA 客户端 — 适配 Urovo i6310 (Android 7.0+)
+签到 PDA 客户端 — 适配 Urovo i6310 (Android 7.0+)
 
 ## 功能
 
@@ -67,7 +67,7 @@ android {
 在 `gradle.properties` 中设置默认服务器地址:
 
 ```properties
-API_BASE_URL=https://your-dormcheck-server.com
+API_BASE_URL=https://your-tally-server.com
 ```
 
 或在首次启动时通过 UI 配置。
@@ -89,8 +89,8 @@ adb install -r app/build/outputs/apk/debug/app-debug.apk
 ## 架构
 
 ```
-com.dormcheck.app/
-├── DormCheckApp.kt          # Application 入口
+com.tally.app/
+├── TallyApp.kt              # Application 入口
 ├── data/
 │   ├── api/                 # Retrofit API 接口
 │   ├── local/               # Room 数据库 + SharedPreferences

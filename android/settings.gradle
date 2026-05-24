@@ -1,2 +1,2 @@
-rootProject.name = 'DormCheck'
+rootProject.name = 'tally'
 include ':app'
