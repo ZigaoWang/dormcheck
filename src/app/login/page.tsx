@@ -8,16 +8,18 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 
+import Image from "next/image";
+
 const ACCOUNTS = [
-  { label: "Admin", email: "admin@dormcheck.local" },
-  { label: "House A", email: "housea@dormcheck.local" },
-  { label: "House B", email: "houseb@dormcheck.local" },
-  { label: "House C", email: "housec@dormcheck.local" },
-  { label: "House D", email: "housed@dormcheck.local" },
-  { label: "House E", email: "housee@dormcheck.local" },
-  { label: "House F", email: "housef@dormcheck.local" },
-  { label: "House G", email: "houseg@dormcheck.local" },
-  { label: "House H", email: "househ@dormcheck.local" },
+  { label: "Admin", email: "admin@tally.local" },
+  { label: "House A", email: "housea@tally.local" },
+  { label: "House B", email: "houseb@tally.local" },
+  { label: "House C", email: "housec@tally.local" },
+  { label: "House D", email: "housed@tally.local" },
+  { label: "House E", email: "housee@tally.local" },
+  { label: "House F", email: "housef@tally.local" },
+  { label: "House G", email: "houseg@tally.local" },
+  { label: "House H", email: "househ@tally.local" },
 ];
 
 export default function LoginPage() {
@@ -46,9 +48,9 @@ export default function LoginPage() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4">
       <div className="w-full max-w-sm space-y-6">
-        <div className="text-center">
-          <h1 className="text-2xl font-semibold">DormCheck</h1>
-          <p className="mt-1 text-sm text-gray-400">Sign in to continue</p>
+        <div className="flex flex-col items-center gap-2">
+          <Image src="/tally-wordmark.svg" alt="tally" width={120} height={40} priority />
+          <p className="text-sm text-gray-400">Sign in to continue</p>
         </div>
 
         <Card>

@@ -36,13 +36,13 @@ export async function GET(req: NextRequest) {
     : "";
 
   if (houseStudentIds.length === 0) {
-    const header = `DormCheck Report - ${houseLabel}${dormLabel ? ` (${dormLabel})` : ""} - ${typeLabel} - ${dateStr}\n\n`;
+    const header = `tally Report - ${houseLabel}${dormLabel ? ` (${dormLabel})` : ""} - ${typeLabel} - ${dateStr}\n\n`;
     return new Response(
       header + "Student ID,Name,Grade,House,Status,Temperature,Time\nNo students found\n",
       {
         headers: {
           "Content-Type": "text/csv; charset=utf-8",
-          "Content-Disposition": `attachment; filename="dormcheck-${house ? `house${house}-` : ""}${dateStr}${type ? `-${type}` : ""}.csv"`,
+          "Content-Disposition": `attachment; filename="tally-${house ? `house${house}-` : ""}${dateStr}${type ? `-${type}` : ""}.csv"`,
         },
       }
     );
@@ -71,7 +71,7 @@ export async function GET(req: NextRequest) {
 
   const lines: string[] = [];
 
-  lines.push(`DormCheck Report`);
+  lines.push(`tally Report`);
   lines.push(`${houseLabel}${dormLabel ? ` (${dormLabel})` : ""}`);
   lines.push(`${typeLabel} - ${dateStr}`);
   lines.push(``);
@@ -105,7 +105,7 @@ export async function GET(req: NextRequest) {
   }
 
   const csv = lines.join("\n");
-  const filename = `dormcheck-${house ? `house${house}-` : ""}${dateStr}${type ? `-${type}` : ""}.csv`;
+  const filename = `tally-${house ? `house${house}-` : ""}${dateStr}${type ? `-${type}` : ""}.csv`;
 
   return new Response(csv, {
     headers: {

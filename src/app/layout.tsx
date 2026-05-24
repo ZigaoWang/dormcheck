@@ -14,8 +14,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "DormCheck",
-  description: "Digital dorm check-in system",
+  title: "tally",
+  description: "Digital check-in system for YK Pao School",
 };
 
 export default function RootLayout({

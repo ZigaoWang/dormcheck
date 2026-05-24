@@ -44,7 +44,7 @@ export default function CheckinPage() {
   const resultTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
-    const savedKey = localStorage.getItem("dormcheck_api_key");
+    const savedKey = localStorage.getItem("tally_api_key");
     if (savedKey) {
       setApiKey(savedKey);
       verifyKey(savedKey);
@@ -64,11 +64,11 @@ export default function CheckinPage() {
       if (data.ok) {
         setDevice(data.device);
         setApiKey(key);
-        localStorage.setItem("dormcheck_api_key", key);
+        localStorage.setItem("tally_api_key", key);
       } else {
         setSetupError(data.message || "Invalid API key");
         setDevice(null);
-        localStorage.removeItem("dormcheck_api_key");
+        localStorage.removeItem("tally_api_key");
       }
     } catch {
       setSetupError("Network error");
@@ -165,7 +165,7 @@ export default function CheckinPage() {
       <div className="flex min-h-dvh flex-col items-center justify-center bg-gray-50 px-6">
         <div className="w-full max-w-sm space-y-6">
           <div className="text-center">
-            <h1 className="text-2xl font-bold text-gray-900">DormCheck</h1>
+            <h1 className="text-2xl font-bold text-gray-900">tally</h1>
             <p className="mt-1 text-sm text-gray-500">Enter your device key to connect</p>
           </div>
 
@@ -269,7 +269,7 @@ export default function CheckinPage() {
             <span className="text-[11px] text-white/30">or scan barcode</span>
             <button
               onClick={() => {
-                localStorage.removeItem("dormcheck_api_key");
+                localStorage.removeItem("tally_api_key");
                 setApiKey("");
                 setDevice(null);
                 setHistory([]);

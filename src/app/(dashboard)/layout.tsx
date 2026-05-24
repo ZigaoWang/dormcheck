@@ -20,13 +20,13 @@ export default async function AuthLayout({
             Engineered by{" "}
             <a href="https://zigao.wang" target="_blank" rel="noopener noreferrer" className="underline hover:text-gray-600">Zigao Wang</a>.
           </p>
-          <p className="text-xs text-gray-400">DormCheck · Version 0.1.0-beta · Developed for YK Pao School</p>
+          <p className="text-xs text-gray-400">tally · Version 0.1.0-beta · Developed for YK Pao School</p>
           <p className="text-xs text-gray-400 leading-relaxed">
             Copyright © 2026 Zigao Wang. All rights reserved. This software is provided "as is", without warranty of any kind, express or implied, including but not limited to the warranties of merchantability, fitness for a particular purpose, and noninfringement. In no event shall the author be liable for any claim, damages, or other liability arising from the use of this software.
           </p>
           <p className="text-xs text-gray-400">
             The source code is publicly available on{" "}
-            <a href="https://github.com/ZigaoWang/dormcheck" target="_blank" rel="noopener noreferrer" className="underline hover:text-gray-700">GitHub</a>
+            <a href="https://github.com/ZigaoWang/tally" target="_blank" rel="noopener noreferrer" className="underline hover:text-gray-700">GitHub</a>
             . For technical inquiries, please contact{" "}
             <a href="mailto:a@zigao.wang" className="underline hover:text-gray-700">a@zigao.wang</a>.
           </p>

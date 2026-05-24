@@ -28,7 +28,7 @@ export function AppNav() {
       <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-4">
         <div className="flex items-center gap-6">
           <Link href="/" className="flex items-center gap-2">
-            <span className="text-lg font-semibold">DormCheck</span>
+            <img src="/tally-wordmark.svg" alt="tally" className="h-5 translate-y-px" />
             {house && (
               <span className="rounded bg-gray-100 px-1.5 py-0.5 text-xs font-medium text-gray-600">
                 House {house}
