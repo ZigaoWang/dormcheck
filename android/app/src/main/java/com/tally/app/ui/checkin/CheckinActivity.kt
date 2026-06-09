@@ -241,6 +241,7 @@ class CheckinActivity : AppCompatActivity() {
                 }
                 viewModel.setCheckType(type)
                 updateModeDisplay()
+                if (viewModel.state.value is CheckinResult.Idle) showIdle()
                 dialog.dismiss()
             }
             .show()
@@ -375,8 +376,13 @@ class CheckinActivity : AppCompatActivity() {
     private fun showIdle() {
         binding.mainContent.setBackgroundColor(getColor(R.color.background))
         binding.areaResult.setBackgroundColor(getColor(R.color.background))
-        binding.textStudentName.text = "READY"
-        binding.textStudentName.setTextColor(getColor(R.color.text_secondary))
+        val modeName = when (viewModel.checkType.value) {
+            CheckType.STUDYHALL -> "STUDY HALL"
+            CheckType.TECH_HANDIN -> "TECH HAND-IN"
+            else -> "MORNING CHECK-IN"
+        }
+        binding.textStudentName.text = modeName
+        binding.textStudentName.setTextColor(getColor(R.color.text_primary))
         binding.textStatus.text = "Scan or enter ID"
         binding.textStatus.setTextColor(getColor(R.color.text_secondary))
         binding.textStudentInfo.text = ""
