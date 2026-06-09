@@ -369,19 +369,22 @@ class CheckinActivity : AppCompatActivity() {
         binding.mainContent.setBackgroundColor(getColor(R.color.background))
         binding.areaResult.setBackgroundColor(getColor(R.color.background))
         val modeName = when (viewModel.checkType.value) {
-            CheckType.STUDYHALL -> "STUDY HALL"
-            CheckType.TECH_HANDIN -> "TECH HAND-IN"
-            else -> "MORNING CHECK-IN"
+            CheckType.STUDYHALL -> "Study Hall"
+            CheckType.TECH_HANDIN -> "Tech Hand-in"
+            else -> "Morning Check-in"
         }
-        binding.textStudentName.text = modeName
-        binding.textStudentName.setTextColor(getColor(R.color.text_primary))
-        binding.textStatus.text = "▾  tap to change mode"
-        binding.textStatus.setTextColor(getColor(R.color.text_secondary))
+        binding.textIdleMode.text = modeName
+        binding.textIdleMode.visibility = View.VISIBLE
+        binding.textIdleHint.visibility = View.VISIBLE
+        binding.textIdleMode.setOnClickListener { showModeSelector() }
+        binding.textIdleHint.setOnClickListener { showModeSelector() }
+        binding.textStudentName.visibility = View.GONE
+        binding.textStatus.visibility = View.GONE
         binding.textStudentInfo.text = ""
         binding.progressCheckin.visibility = View.GONE
         binding.areaResult.setOnClickListener(null)
-        binding.textStudentName.setOnClickListener { showModeSelector() }
-        binding.textStatus.setOnClickListener { showModeSelector() }
+        binding.textStudentName.setOnClickListener(null)
+        binding.textStatus.setOnClickListener(null)
         binding.textFooter.setTextColor(getColor(R.color.text_secondary))
         binding.dividerManual.visibility = View.VISIBLE
         binding.btnManualInput.visibility = View.VISIBLE
@@ -389,6 +392,10 @@ class CheckinActivity : AppCompatActivity() {
     }
 
     private fun showProcessing() {
+        binding.textIdleMode.visibility = View.GONE
+        binding.textIdleHint.visibility = View.GONE
+        binding.textStudentName.visibility = View.VISIBLE
+        binding.textStatus.visibility = View.VISIBLE
         binding.textStudentName.text = ""
         binding.textStatus.text = ""
         binding.textStudentInfo.text = ""
@@ -502,6 +509,10 @@ class CheckinActivity : AppCompatActivity() {
     }
 
     private fun setResultState(colorRes: Int) {
+        binding.textIdleMode.visibility = View.GONE
+        binding.textIdleHint.visibility = View.GONE
+        binding.textStudentName.visibility = View.VISIBLE
+        binding.textStatus.visibility = View.VISIBLE
         binding.progressCheckin.visibility = View.GONE
         binding.mainContent.setBackgroundColor(getColor(colorRes))
         binding.areaResult.setBackgroundColor(getColor(colorRes))

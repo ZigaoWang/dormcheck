@@ -74,6 +74,31 @@
             android:gravity="center">
 
             <TextView
+                android:id="@+id/text_idle_mode"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:paddingStart="32dp"
+                android:paddingEnd="32dp"
+                android:textSize="28sp"
+                android:textStyle="bold"
+                android:textColor="@color/text_primary"
+                android:visibility="gone" />
+
+            <TextView
+                android:id="@+id/text_idle_hint"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:paddingStart="32dp"
+                android:paddingEnd="32dp"
+                android:layout_marginTop="8dp"
+                android:textSize="14sp"
+                android:textColor="@color/text_secondary"
+                android:text="Scan card or enter ID to check in"
+                android:visibility="gone" />
+
+            <TextView
                 android:id="@+id/text_student_name"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
