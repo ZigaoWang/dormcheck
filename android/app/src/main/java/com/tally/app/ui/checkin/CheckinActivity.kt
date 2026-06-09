@@ -43,6 +43,7 @@ class CheckinActivity : AppCompatActivity() {
     private val tempBuffer = StringBuilder()
     private val idBuffer = StringBuilder()
     private var thermometerAvailable = false
+    private var isBindMode = false
 
     private var photoFile: File? = null
     private var techPhoneHandedIn = true
@@ -207,6 +208,7 @@ class CheckinActivity : AppCompatActivity() {
         updateModeDisplay()
         binding.textMode.setOnClickListener { showModeSelector() }
         binding.btnManualInput.setOnClickListener { showManualIdOverlay() }
+        binding.btnBindCard.setOnClickListener { showBindCardOverlay() }
         binding.btnSettings.setOnClickListener { showSettingsDialog() }
 
         setupTemperatureKeypad()
@@ -383,6 +385,7 @@ class CheckinActivity : AppCompatActivity() {
         binding.textFooter.setTextColor(getColor(R.color.text_secondary))
         binding.dividerManual.visibility = View.VISIBLE
         binding.btnManualInput.visibility = View.VISIBLE
+        binding.btnBindCard.visibility = View.GONE
     }
 
     private fun showProcessing() {
@@ -480,6 +483,9 @@ class CheckinActivity : AppCompatActivity() {
         binding.textStudentName.text = "UID: ${result.uid}"
         binding.textStatus.text = "UNBOUND CARD"
         binding.textStudentInfo.text = ""
+        binding.dividerManual.visibility = View.VISIBLE
+        binding.btnBindCard.visibility = View.VISIBLE
+        binding.btnManualInput.visibility = View.GONE
     }
 
     private fun showQueued(result: CheckinResult.Queued) {
@@ -501,11 +507,20 @@ class CheckinActivity : AppCompatActivity() {
         binding.areaResult.setOnClickListener(null)
         binding.dividerManual.visibility = View.GONE
         binding.btnManualInput.visibility = View.GONE
+        binding.btnBindCard.visibility = View.GONE
     }
 
     // --- Dialogs ---
 
     private fun showManualIdOverlay() {
+        isBindMode = false
+        idBuffer.clear()
+        refreshIdDisplay()
+        binding.overlayManualId.visibility = View.VISIBLE
+    }
+
+    private fun showBindCardOverlay() {
+        isBindMode = true
         idBuffer.clear()
         refreshIdDisplay()
         binding.overlayManualId.visibility = View.VISIBLE
@@ -555,7 +570,12 @@ class CheckinActivity : AppCompatActivity() {
             val id = idBuffer.toString().trim()
             if (id.length == 5) {
                 hideManualIdOverlay()
-                viewModel.onStudentIdEntered(id)
+                if (isBindMode) {
+                    isBindMode = false
+                    viewModel.bindCard(id)
+                } else {
+                    viewModel.onStudentIdEntered(id)
+                }
             } else {
                 Toast.makeText(this, "Enter 5-digit student ID", Toast.LENGTH_SHORT).show()
             }

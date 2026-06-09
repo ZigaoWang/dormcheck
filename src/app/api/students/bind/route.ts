@@ -1,12 +1,19 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { students } from "@/lib/db/schema";
-import { eq } from "drizzle-orm";
-import { getSessionUser } from "@/lib/session";
+import { students, devices } from "@/lib/db/schema";
+import { eq, and } from "drizzle-orm";
 
 export async function POST(req: NextRequest) {
-  const user = await getSessionUser();
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const apiKey = req.headers.get("X-Device-API-Key");
+  if (!apiKey) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const [device] = await db
+    .select()
+    .from(devices)
+    .where(and(eq(devices.apiKey, apiKey), eq(devices.isActive, true)))
+    .limit(1);
+
+  if (!device) return NextResponse.json({ error: "Invalid API key" }, { status: 401 });
 
   const { student_id, uid } = await req.json();
 
@@ -26,10 +33,6 @@ export async function POST(req: NextRequest) {
 
   if (!student) {
     return NextResponse.json({ error: "Student not found" }, { status: 404 });
-  }
-
-  if (!user.isAdmin && user.house !== student.house) {
-    return NextResponse.json({ error: "Cannot bind students from another house" }, { status: 403 });
   }
 
   await db

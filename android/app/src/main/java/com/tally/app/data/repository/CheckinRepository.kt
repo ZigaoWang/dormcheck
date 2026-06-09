@@ -3,6 +3,7 @@ package com.tally.app.data.repository
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import com.tally.app.data.api.ApiClient
+import com.tally.app.data.api.BindCardRequest
 import com.tally.app.data.api.CreateLockerRequest
 import com.tally.app.data.api.TallyApi
 import com.tally.app.data.api.LockerInfo

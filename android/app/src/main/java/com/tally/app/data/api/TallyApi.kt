@@ -57,12 +57,23 @@ interface TallyApi {
         @Part("student_id") studentId: okhttp3.RequestBody
     ): Response<UploadResponse>
 
+    @POST("/api/students/bind")
+    suspend fun bindCard(
+        @Header("X-Device-API-Key") apiKey: String,
+        @Body request: BindCardRequest
+    ): Response<Any>
+
     @POST("/api/lockers")
     suspend fun createLocker(
         @Header("X-Device-API-Key") apiKey: String,
         @Body request: CreateLockerRequest
     ): Response<Any>
 }
+
+data class BindCardRequest(
+    val student_id: String,
+    val uid: String
+)
 
 data class CreateLockerRequest(
     val studentId: String,
