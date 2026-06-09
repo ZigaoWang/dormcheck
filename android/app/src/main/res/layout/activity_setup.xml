@@ -107,6 +107,15 @@
 
             </com.google.android.material.textfield.TextInputLayout>
 
+            <CheckBox
+                android:id="@+id/checkbox_thermometer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:text="This device has a thermometer"
+                android:textSize="14sp"
+                android:textColor="@color/text_primary" />
+
             <TextView
                 android:id="@+id/text_error"
                 android:layout_width="match_parent"

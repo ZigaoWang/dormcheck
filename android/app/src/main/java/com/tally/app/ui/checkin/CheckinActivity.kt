@@ -113,7 +113,7 @@ class CheckinActivity : AppCompatActivity() {
 
     private fun setupThermometer() {
         thermometer = ThermometerManager()
-        thermometerAvailable = thermometer.open()
+        thermometerAvailable = TallyApp.instance.prefs.hasThermometer && thermometer.open()
     }
 
     private fun setupBarcodeInput() {

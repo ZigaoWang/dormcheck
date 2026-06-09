@@ -32,6 +32,10 @@ class PrefsManager(context: Context) {
         get() = prefs.getString(KEY_CHECK_TYPE, "morning") ?: "morning"
         set(value) = prefs.edit().putString(KEY_CHECK_TYPE, value).apply()
 
+    var hasThermometer: Boolean
+        get() = prefs.getBoolean(KEY_HAS_THERMOMETER, false)
+        set(value) = prefs.edit().putBoolean(KEY_HAS_THERMOMETER, value).apply()
+
     val isConfigured: Boolean
         get() = serverUrl.isNotBlank() && apiKey.isNotBlank() && deviceId.isNotBlank()
 
@@ -47,5 +51,6 @@ class PrefsManager(context: Context) {
         private const val KEY_DEVICE_NAME = "device_name"
         private const val KEY_HOUSE = "house"
         private const val KEY_CHECK_TYPE = "check_type"
+        private const val KEY_HAS_THERMOMETER = "has_thermometer"
     }
 }

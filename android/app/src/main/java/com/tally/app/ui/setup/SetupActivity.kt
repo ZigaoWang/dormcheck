@@ -35,6 +35,7 @@ class SetupActivity : AppCompatActivity() {
 
         binding.inputServerUrl.setText(prefs.serverUrl.ifBlank { BuildConfig.API_BASE_URL })
         binding.inputApiKey.setText(prefs.apiKey)
+        binding.checkboxThermometer.isChecked = prefs.hasThermometer
 
         binding.btnConnect.setOnClickListener { attemptConnect() }
     }
@@ -69,6 +70,7 @@ class SetupActivity : AppCompatActivity() {
                     prefs.deviceId = device?.id ?: ""
                     prefs.deviceName = device?.name ?: ""
                     prefs.house = device?.house ?: ""
+                    prefs.hasThermometer = binding.checkboxThermometer.isChecked
 
                     TallyApp.instance.repository.refreshApi()
 
