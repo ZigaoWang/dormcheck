@@ -206,7 +206,6 @@ class CheckinActivity : AppCompatActivity() {
         binding.textDeviceName.text = "${prefs.deviceName}${house}"
 
         updateModeDisplay()
-        binding.textMode.setOnClickListener { showModeSelector() }
         binding.btnManualInput.setOnClickListener { showManualIdOverlay() }
         binding.btnBindCard.setOnClickListener { showBindCardOverlay() }
         binding.btnSettings.setOnClickListener { showSettingsDialog() }
@@ -215,14 +214,7 @@ class CheckinActivity : AppCompatActivity() {
         setupIdKeypad()
     }
 
-    private fun updateModeDisplay() {
-        val label = when (viewModel.checkType.value) {
-            CheckType.STUDYHALL -> "Study Hall ▾"
-            CheckType.TECH_HANDIN -> "Tech Hand-in ▾"
-            else -> "Morning ▾"
-        }
-        binding.textMode.text = label
-    }
+    private fun updateModeDisplay() {}
 
     private fun showModeSelector() {
         val modes = arrayOf("Morning", "Study Hall", "Tech Hand-in")
@@ -383,11 +375,13 @@ class CheckinActivity : AppCompatActivity() {
         }
         binding.textStudentName.text = modeName
         binding.textStudentName.setTextColor(getColor(R.color.text_primary))
-        binding.textStatus.text = "Scan or enter ID"
+        binding.textStatus.text = "▾  tap to change mode"
         binding.textStatus.setTextColor(getColor(R.color.text_secondary))
         binding.textStudentInfo.text = ""
         binding.progressCheckin.visibility = View.GONE
         binding.areaResult.setOnClickListener(null)
+        binding.textStudentName.setOnClickListener { showModeSelector() }
+        binding.textStatus.setOnClickListener { showModeSelector() }
         binding.textFooter.setTextColor(getColor(R.color.text_secondary))
         binding.dividerManual.visibility = View.VISIBLE
         binding.btnManualInput.visibility = View.VISIBLE
