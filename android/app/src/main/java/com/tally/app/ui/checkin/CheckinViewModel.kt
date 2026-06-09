@@ -86,6 +86,7 @@ class CheckinViewModel : ViewModel() {
                 handleStudentFound(studentInfo)
             } else {
                 _state.value = CheckinResult.StudentNotFound(studentId = studentId)
+                scheduleReset()
             }
         }
     }
@@ -245,6 +246,7 @@ class CheckinViewModel : ViewModel() {
                 _state.value = CheckinResult.AwaitingTemperature(uid = uid, studentId = studentId, name = studentInfo.name)
             } else {
                 _state.value = CheckinResult.StudentNotFound(studentId = studentId, uid = uid)
+                scheduleReset()
             }
         }
     }

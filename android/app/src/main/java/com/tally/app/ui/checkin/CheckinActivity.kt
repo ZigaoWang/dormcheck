@@ -467,6 +467,7 @@ class CheckinActivity : AppCompatActivity() {
         binding.textStudentName.text = result.message
         binding.textStatus.text = "ERROR"
         binding.textStudentInfo.text = ""
+        binding.areaResult.setOnClickListener { viewModel.dismissStudentNotFound() }
     }
 
     private fun showStudentNotFound(result: CheckinResult.StudentNotFound) {
@@ -475,6 +476,7 @@ class CheckinActivity : AppCompatActivity() {
         binding.textStudentName.text = result.studentId
         binding.textStatus.text = "NOT FOUND"
         binding.textStudentInfo.text = ""
+        binding.areaResult.setOnClickListener { viewModel.dismissStudentNotFound() }
     }
 
     private fun showUnknownCard(result: CheckinResult.UnknownCard) {
