@@ -369,9 +369,9 @@ class CheckinActivity : AppCompatActivity() {
         binding.mainContent.setBackgroundColor(getColor(R.color.background))
         binding.areaResult.setBackgroundColor(getColor(R.color.background))
         val modeName = when (viewModel.checkType.value) {
-            CheckType.STUDYHALL -> "Study Hall"
-            CheckType.TECH_HANDIN -> "Tech Hand-in"
-            else -> "Morning Check-in"
+            CheckType.STUDYHALL -> "Study Hall  ▾"
+            CheckType.TECH_HANDIN -> "Tech Hand-in  ▾"
+            else -> "Morning Check-in  ▾"
         }
         binding.textIdleMode.text = modeName
         binding.textIdleMode.visibility = View.VISIBLE

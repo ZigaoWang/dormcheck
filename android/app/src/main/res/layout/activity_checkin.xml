@@ -75,14 +75,17 @@
 
             <TextView
                 android:id="@+id/text_idle_mode"
-                android:layout_width="match_parent"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:gravity="center"
-                android:paddingStart="32dp"
-                android:paddingEnd="32dp"
-                android:textSize="28sp"
+                android:paddingStart="24dp"
+                android:paddingEnd="24dp"
+                android:paddingTop="12dp"
+                android:paddingBottom="12dp"
+                android:textSize="22sp"
                 android:textStyle="bold"
-                android:textColor="@color/text_primary"
+                android:textColor="@color/accent"
+                android:background="@drawable/bg_mode_chip"
                 android:visibility="gone" />
 
             <TextView
@@ -90,10 +93,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:gravity="center"
-                android:paddingStart="32dp"
-                android:paddingEnd="32dp"
-                android:layout_marginTop="8dp"
-                android:textSize="14sp"
+                android:layout_marginTop="16dp"
+                android:textSize="15sp"
                 android:textColor="@color/text_secondary"
                 android:text="Scan card or enter ID to check in"
                 android:visibility="gone" />
