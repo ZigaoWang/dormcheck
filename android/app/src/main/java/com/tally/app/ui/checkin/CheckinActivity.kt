@@ -400,11 +400,7 @@ class CheckinActivity : AppCompatActivity() {
 
     private fun showTemperatureInput(result: CheckinResult.AwaitingTemperature) {
         binding.progressCheckin.visibility = View.GONE
-        if (!thermometerAvailable) {
-            viewModel.submitTemperature(null)
-        } else {
-            showTemperatureOverlay(result)
-        }
+        showTemperatureOverlay(result)
     }
 
     private fun showTemperatureOverlay(result: CheckinResult.AwaitingTemperature) {
