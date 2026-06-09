@@ -36,10 +36,11 @@ class NetworkMonitor(private val serverUrl: String) {
         if (serverUrl.isBlank()) return false
         return try {
             val url = serverUrl.trimEnd('/') + "/api/health"
-            val request = Request.Builder().url(url).head().build()
+            val request = Request.Builder().url(url).get().build()
             val response = client.newCall(request).execute()
+            val ok = response.code == 200
             response.close()
-            response.isSuccessful || response.code == 404
+            ok
         } catch (_: Exception) {
             false
         }
@@ -60,6 +61,6 @@ class NetworkMonitor(private val serverUrl: String) {
     }
 
     companion object {
-        private const val PING_INTERVAL_MS = 15_000L
+        private const val PING_INTERVAL_MS = 5_000L
     }
 }

@@ -7,6 +7,7 @@ export default auth((req) => {
   const isApiAuth = req.nextUrl.pathname.startsWith("/api/auth");
   const isDeviceApi =
     req.nextUrl.pathname === "/api/checkin" ||
+    req.nextUrl.pathname === "/api/health" ||
     req.nextUrl.pathname === "/api/feed/stream" ||
     req.nextUrl.pathname === "/api/devices/verify" ||
     req.nextUrl.pathname === "/api/upload" ||
