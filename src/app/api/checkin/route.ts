@@ -44,6 +44,13 @@ export async function POST(req: NextRequest) {
     );
   }
 
+  if (check_type !== "tech_handin" && (temperature == null || isNaN(temperature))) {
+    return NextResponse.json(
+      { ok: false, message: "Temperature required" },
+      { status: 400 }
+    );
+  }
+
   let student;
   if (student_id) {
     const [s] = await db
