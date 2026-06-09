@@ -443,6 +443,7 @@ class CheckinActivity : AppCompatActivity() {
         binding.textStudentName.text = result.response.name ?: ""
         binding.textStatus.text = "ON TIME"
         binding.textStudentInfo.text = buildStudentInfo(result.response.grade, result.response.student_id)
+        binding.areaResult.setOnClickListener { viewModel.dismissStudentNotFound() }
     }
 
     private fun showLate(result: CheckinResult.Late) {
@@ -451,6 +452,7 @@ class CheckinActivity : AppCompatActivity() {
         binding.textStudentName.text = result.response.name ?: ""
         binding.textStatus.text = "LATE"
         binding.textStudentInfo.text = buildStudentInfo(result.response.grade, result.response.student_id)
+        binding.areaResult.setOnClickListener { viewModel.dismissStudentNotFound() }
     }
 
     private fun showFever(result: CheckinResult.Fever) {
@@ -459,6 +461,7 @@ class CheckinActivity : AppCompatActivity() {
         binding.textStudentName.text = result.response.name ?: ""
         binding.textStatus.text = "FEVER"
         binding.textStudentInfo.text = buildStudentInfo(result.response.grade, result.response.student_id)
+        binding.areaResult.setOnClickListener { viewModel.dismissStudentNotFound() }
     }
 
     private fun showError(result: CheckinResult.Error) {
