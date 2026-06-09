@@ -21,7 +21,7 @@ object ApiClient {
             .addInterceptor(logging)
             .build()
 
-        val baseUrl = prefs.serverUrl.ifBlank { "http://localhost:3000" }
+        val baseUrl = prefs.serverUrl.ifBlank { "https://tally.ykps.net" }
 
         val retrofit = Retrofit.Builder()
             .baseUrl(baseUrl.trimEnd('/') + "/")
