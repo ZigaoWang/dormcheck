@@ -12,7 +12,9 @@ export default auth((req) => {
     req.nextUrl.pathname === "/api/upload" ||
     req.nextUrl.pathname.startsWith("/api/upload/") ||
     req.nextUrl.pathname === "/api/lockers/lookup" ||
-    req.nextUrl.pathname === "/api/lockers";
+    req.nextUrl.pathname === "/api/lockers" ||
+    req.nextUrl.pathname === "/api/students/lookup" ||
+    req.nextUrl.pathname === "/api/students/bind";
   const isCheckinPage = req.nextUrl.pathname === "/checkin";
 
   if (isApiAuth || isDeviceApi || isCheckinPage) return NextResponse.next();
