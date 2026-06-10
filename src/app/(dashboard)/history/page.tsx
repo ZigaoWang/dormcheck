@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { format } from "date-fns";
+import { format, startOfWeek, endOfWeek, subWeeks } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
@@ -19,13 +19,28 @@ interface Checkin {
 }
 
 export default function HistoryPage() {
-  const [startDate, setStartDate] = useState(format(new Date(), "yyyy-MM-dd"));
-  const [endDate, setEndDate] = useState(format(new Date(), "yyyy-MM-dd"));
+  const today = format(new Date(), "yyyy-MM-dd");
+  const [startDate, setStartDate] = useState(today);
+  const [endDate, setEndDate] = useState(today);
   const [gradeFilter, setGradeFilter] = useState("");
   const [typeFilter, setTypeFilter] = useState("");
   const [checkins, setCheckins] = useState<Checkin[]>([]);
   const [loading, setLoading] = useState(false);
   const [searched, setSearched] = useState(false);
+
+  function applyPreset(preset: "today" | "thisWeek" | "lastWeek") {
+    const now = new Date();
+    if (preset === "today") {
+      setStartDate(today); setEndDate(today);
+    } else if (preset === "thisWeek") {
+      setStartDate(format(startOfWeek(now, { weekStartsOn: 1 }), "yyyy-MM-dd"));
+      setEndDate(format(endOfWeek(now, { weekStartsOn: 1 }), "yyyy-MM-dd"));
+    } else {
+      const last = subWeeks(now, 1);
+      setStartDate(format(startOfWeek(last, { weekStartsOn: 1 }), "yyyy-MM-dd"));
+      setEndDate(format(endOfWeek(last, { weekStartsOn: 1 }), "yyyy-MM-dd"));
+    }
+  }
 
   async function handleSearch() {
     setLoading(true);
@@ -47,23 +62,18 @@ export default function HistoryPage() {
       <h1 className="text-xl font-semibold">History</h1>
 
       <div className="flex flex-wrap items-end gap-3">
+        <div className="flex gap-1">
+          <Button variant="outline" size="sm" onClick={() => applyPreset("today")}>Today</Button>
+          <Button variant="outline" size="sm" onClick={() => applyPreset("thisWeek")}>This Week</Button>
+          <Button variant="outline" size="sm" onClick={() => applyPreset("lastWeek")}>Last Week</Button>
+        </div>
         <div>
           <label className="mb-1 block text-sm text-gray-500">From</label>
-          <Input
-            type="date"
-            value={startDate}
-            onChange={(e) => setStartDate(e.target.value)}
-            className="w-40"
-          />
+          <Input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="w-40" />
         </div>
         <div>
           <label className="mb-1 block text-sm text-gray-500">To</label>
-          <Input
-            type="date"
-            value={endDate}
-            onChange={(e) => setEndDate(e.target.value)}
-            className="w-40"
-          />
+          <Input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} className="w-40" />
         </div>
         <div>
           <label className="mb-1 block text-sm text-gray-500">Year</label>
@@ -98,7 +108,7 @@ export default function HistoryPage() {
             size="sm"
             onClick={() =>
               window.open(
-                `/api/export?date=${startDate}&type=${typeFilter}`,
+                `/api/export?start=${startDate}&end=${endDate}&type=${typeFilter}`,
                 "_blank"
               )
             }
