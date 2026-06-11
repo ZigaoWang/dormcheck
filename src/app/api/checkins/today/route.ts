@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { checkins, students, lockers } from "@/lib/db/schema";
-import { eq, and, gte, lt, inArray, desc } from "drizzle-orm";
+import { checkins, students, lockers, deviceExemptions } from "@/lib/db/schema";
+import { eq, and, gte, lt, lte, inArray, desc } from "drizzle-orm";
 import { getSessionUser, houseFilter } from "@/lib/session";
 
 export async function GET(req: NextRequest) {
@@ -56,6 +56,15 @@ export async function GET(req: NextRequest) {
     hasIpad: boolean;
   }> = [];
 
+  let exemptionData: Array<{
+    id: number;
+    studentId: string;
+    deviceType: string;
+    startDate: string;
+    endDate: string;
+    note: string | null;
+  }> = [];
+
   if (type === "tech_handin") {
     const lockerRows = await db
       .select()
@@ -67,11 +76,28 @@ export async function GET(req: NextRequest) {
       hasLaptop: l.hasLaptop,
       hasIpad: l.hasIpad,
     }));
+
+    const exemptionRows = await db
+      .select()
+      .from(deviceExemptions)
+      .where(and(
+        inArray(deviceExemptions.studentId, houseStudentIds),
+        lte(deviceExemptions.startDate, dateStr),
+        gte(deviceExemptions.endDate, dateStr),
+      ));
+    exemptionData = exemptionRows.map((e) => ({
+      id: e.id,
+      studentId: e.studentId,
+      deviceType: e.deviceType,
+      startDate: e.startDate,
+      endDate: e.endDate,
+      note: e.note,
+    }));
   }
 
   return NextResponse.json({
     checkins: dayCheckins,
     missing: missingStudents,
-    ...(type === "tech_handin" && { lockers: lockerData }),
+    ...(type === "tech_handin" && { lockers: lockerData, exemptions: exemptionData }),
   });
 }

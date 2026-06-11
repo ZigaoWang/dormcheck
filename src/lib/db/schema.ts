@@ -102,3 +102,24 @@ export const lockers = pgTable("lockers", {
     .notNull()
     .defaultNow(),
 });
+
+export const deviceExemptionTypeEnum = pgEnum("device_exemption_type", [
+  "phone",
+  "laptop",
+  "ipad",
+]);
+
+export const deviceExemptions = pgTable("device_exemptions", {
+  id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
+  studentId: text("student_id")
+    .notNull()
+    .references(() => students.studentId),
+  deviceType: deviceExemptionTypeEnum("device_type").notNull(),
+  startDate: text("start_date").notNull(),
+  endDate: text("end_date").notNull(),
+  note: text("note"),
+  createdBy: text("created_by"),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});

@@ -46,6 +46,16 @@ interface RosterEntry {
   photoUrl: string | null;
   devices: { hasPhone: boolean; hasLaptop: boolean; hasIpad: boolean } | null;
   deviceStatus: { phoneHandedIn: boolean | null; laptopHandedIn: boolean | null; ipadHandedIn: boolean | null } | null;
+  exemptions: { phone: Exemption | null; laptop: Exemption | null; ipad: Exemption | null };
+}
+
+interface Exemption {
+  id: number;
+  studentId: string;
+  deviceType: "phone" | "laptop" | "ipad";
+  startDate: string;
+  endDate: string;
+  note: string | null;
 }
 
 interface HouseSummary {
@@ -114,6 +124,172 @@ function StatCard({
   );
 }
 
+function DeviceChip({
+  label,
+  handedIn,
+  exemption,
+}: {
+  label: string;
+  handedIn: boolean | null | undefined;
+  exemption: Exemption | null;
+}) {
+  if (exemption) {
+    return (
+      <span
+        className="rounded bg-blue-50 px-1.5 py-0.5 text-blue-700"
+        title={`Exempt ${exemption.startDate} to ${exemption.endDate}${exemption.note ? `: ${exemption.note}` : ""}`}
+      >
+        {label}: exempt
+      </span>
+    );
+  }
+  if (handedIn === undefined || handedIn === null) {
+    return <span className="rounded bg-gray-50 px-1.5 py-0.5 text-gray-500">{label}</span>;
+  }
+  return (
+    <span className={cn(
+      "rounded px-1.5 py-0.5",
+      handedIn === false ? "bg-red-50 text-red-600 line-through" : "bg-green-50 text-green-600"
+    )}>
+      {label}
+    </span>
+  );
+}
+
+function ExemptionEditor({
+  entry,
+  today,
+  onClose,
+  onSaved,
+}: {
+  entry: RosterEntry;
+  today: string;
+  onClose: () => void;
+  onSaved: () => void;
+}) {
+  const [deviceType, setDeviceType] = useState<"phone" | "laptop" | "ipad">(
+    entry.devices?.hasPhone ? "phone" : entry.devices?.hasLaptop ? "laptop" : "ipad"
+  );
+  const [startDate, setStartDate] = useState(today);
+  const [endDate, setEndDate] = useState(today);
+  const [note, setNote] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState("");
+
+  const active = [
+    entry.exemptions.phone,
+    entry.exemptions.laptop,
+    entry.exemptions.ipad,
+  ].filter((e): e is Exemption => e !== null);
+
+  async function add() {
+    if (startDate > endDate) { setError("Start date must be before end date"); return; }
+    setSubmitting(true); setError("");
+    const res = await fetch("/api/exemptions", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ studentId: entry.studentId, deviceType, startDate, endDate, note }),
+    });
+    setSubmitting(false);
+    if (res.ok) onSaved();
+    else { const d = await res.json(); setError(d.error || "Failed to save"); }
+  }
+
+  async function remove(id: number) {
+    setSubmitting(true);
+    const res = await fetch("/api/exemptions", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id }),
+    });
+    setSubmitting(false);
+    if (res.ok) onSaved();
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={onClose}>
+      <div className="w-full max-w-md rounded-xl bg-white p-5 shadow-xl" onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-start justify-between">
+          <div>
+            <h2 className="text-base font-semibold">Device Exemptions</h2>
+            <p className="text-sm text-gray-500">{entry.name} · {entry.studentId}</p>
+          </div>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-700">&times;</button>
+        </div>
+
+        {active.length > 0 && (
+          <div className="mt-4 space-y-2">
+            <p className="text-xs font-semibold uppercase text-gray-400">Active exemptions</p>
+            {active.map((e) => (
+              <div key={e.id} className="flex items-start justify-between rounded-lg border bg-blue-50 px-3 py-2">
+                <div className="text-sm">
+                  <p className="font-medium capitalize">{e.deviceType}</p>
+                  <p className="text-xs text-gray-600">{e.startDate} → {e.endDate}</p>
+                  {e.note && <p className="text-xs text-gray-700 mt-0.5">{e.note}</p>}
+                </div>
+                <button
+                  onClick={() => remove(e.id)}
+                  disabled={submitting}
+                  className="text-xs text-red-600 hover:underline"
+                >
+                  Remove
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+
+        <div className="mt-5 space-y-3 border-t pt-4">
+          <p className="text-xs font-semibold uppercase text-gray-400">Add new exemption</p>
+
+          <div>
+            <label className="mb-1 block text-xs text-gray-500">Device</label>
+            <select
+              value={deviceType}
+              onChange={(e) => setDeviceType(e.target.value as "phone" | "laptop" | "ipad")}
+              className="h-9 w-full rounded-md border px-3 text-sm"
+            >
+              {entry.devices?.hasPhone && <option value="phone">Phone</option>}
+              {entry.devices?.hasLaptop && <option value="laptop">Laptop</option>}
+              {entry.devices?.hasIpad && <option value="ipad">iPad</option>}
+            </select>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="mb-1 block text-xs text-gray-500">From</label>
+              <Input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs text-gray-500">To</label>
+              <Input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} />
+            </div>
+          </div>
+
+          <div>
+            <label className="mb-1 block text-xs text-gray-500">Reason (optional)</label>
+            <Input
+              type="text"
+              value={note}
+              onChange={(e) => setNote(e.target.value)}
+              placeholder="e.g. confiscated, broken, at home"
+            />
+          </div>
+
+          {error && <p className="text-sm text-red-600">{error}</p>}
+
+          <div className="flex justify-end gap-2 pt-2">
+            <Button variant="outline" size="sm" onClick={onClose}>Cancel</Button>
+            <Button size="sm" onClick={add} disabled={submitting}>
+              {submitting ? "Saving..." : "Add Exemption"}
+            </Button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function DashboardPage() {
   const { data: session, status } = useSession();
   const userHouse = (session?.user as Record<string, unknown>)?.house as string | null;
@@ -125,10 +301,12 @@ export default function DashboardPage() {
   const [checkins, setCheckins] = useState<Checkin[]>([]);
   const [missing, setMissing] = useState<Student[]>([]);
   const [lockerData, setLockerData] = useState<LockerInfo[]>([]);
+  const [exemptions, setExemptions] = useState<Exemption[]>([]);
   const [allHouses, setAllHouses] = useState<HouseSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const [exemptionEditor, setExemptionEditor] = useState<RosterEntry | null>(null);
 
   useEffect(() => {
     if (status !== "authenticated") return;
@@ -143,6 +321,7 @@ export default function DashboardPage() {
       setCheckins(data.checkins || []);
       setMissing(data.missing || []);
       setLockerData(data.lockers || []);
+      setExemptions(data.exemptions || []);
       setLastUpdated(new Date());
     } finally {
       setLoading(false);
@@ -195,6 +374,12 @@ export default function DashboardPage() {
   ).length;
 
   const lockerMap = new Map(lockerData.map((l) => [l.studentId, l]));
+  const exemptionMap = new Map<string, { phone: Exemption | null; laptop: Exemption | null; ipad: Exemption | null }>();
+  for (const e of exemptions) {
+    if (!exemptionMap.has(e.studentId)) exemptionMap.set(e.studentId, { phone: null, laptop: null, ipad: null });
+    exemptionMap.get(e.studentId)![e.deviceType] = e;
+  }
+  const emptyEx = { phone: null, laptop: null, ipad: null };
 
   const buildRoster = (grade: number): RosterEntry[] => {
     const entries: RosterEntry[] = [
@@ -212,6 +397,7 @@ export default function DashboardPage() {
             photoUrl: c.photoUrl,
             devices: locker ? { hasPhone: locker.hasPhone, hasLaptop: locker.hasLaptop, hasIpad: locker.hasIpad } : null,
             deviceStatus: { phoneHandedIn: c.phoneHandedIn, laptopHandedIn: c.laptopHandedIn, ipadHandedIn: c.ipadHandedIn },
+            exemptions: exemptionMap.get(c.studentId) || emptyEx,
           };
         }),
       ...missing
@@ -228,6 +414,7 @@ export default function DashboardPage() {
             photoUrl: null,
             devices: locker ? { hasPhone: locker.hasPhone, hasLaptop: locker.hasLaptop, hasIpad: locker.hasIpad } : null,
             deviceStatus: null,
+            exemptions: exemptionMap.get(s.studentId) || emptyEx,
           };
         }),
     ];
@@ -437,25 +624,35 @@ export default function DashboardPage() {
                             <>
                               <td className="px-4 py-2.5">
                                 {r.devices ? (
-                                  <span className="flex gap-1.5 text-xs">
+                                  <span className="flex flex-wrap gap-1.5 text-xs">
                                     {r.devices.hasPhone && (
-                                      <span className={cn("rounded px-1.5 py-0.5", r.deviceStatus
-                                        ? (r.deviceStatus.phoneHandedIn === false ? "bg-red-50 text-red-600 line-through" : "bg-green-50 text-green-600")
-                                        : "bg-gray-50 text-gray-500"
-                                      )}>Phone</span>
+                                      <DeviceChip
+                                        label="Phone"
+                                        handedIn={r.deviceStatus?.phoneHandedIn}
+                                        exemption={r.exemptions.phone}
+                                      />
                                     )}
                                     {r.devices.hasLaptop && (
-                                      <span className={cn("rounded px-1.5 py-0.5", r.deviceStatus
-                                        ? (r.deviceStatus.laptopHandedIn === false ? "bg-red-50 text-red-600 line-through" : "bg-green-50 text-green-600")
-                                        : "bg-gray-50 text-gray-500"
-                                      )}>Laptop</span>
+                                      <DeviceChip
+                                        label="Laptop"
+                                        handedIn={r.deviceStatus?.laptopHandedIn}
+                                        exemption={r.exemptions.laptop}
+                                      />
                                     )}
                                     {r.devices.hasIpad && (
-                                      <span className={cn("rounded px-1.5 py-0.5", r.deviceStatus
-                                        ? (r.deviceStatus.ipadHandedIn === false ? "bg-red-50 text-red-600 line-through" : "bg-green-50 text-green-600")
-                                        : "bg-gray-50 text-gray-500"
-                                      )}>iPad</span>
+                                      <DeviceChip
+                                        label="iPad"
+                                        handedIn={r.deviceStatus?.ipadHandedIn}
+                                        exemption={r.exemptions.ipad}
+                                      />
                                     )}
+                                    <button
+                                      onClick={() => setExemptionEditor(r)}
+                                      className="rounded border border-dashed border-gray-300 px-1.5 py-0.5 text-gray-400 hover:border-gray-500 hover:text-gray-700"
+                                      title="Manage exemptions"
+                                    >
+                                      Edit
+                                    </button>
                                   </span>
                                 ) : (
                                   <span className="text-xs text-gray-300">Not set</span>
@@ -496,6 +693,16 @@ export default function DashboardPage() {
             );
           })}
         </div>
+      )}
+
+      {/* Exemption editor */}
+      {exemptionEditor && (
+        <ExemptionEditor
+          entry={exemptionEditor}
+          today={date}
+          onClose={() => setExemptionEditor(null)}
+          onSaved={() => { setExemptionEditor(null); fetchHouse(); }}
+        />
       )}
 
       {/* Photo lightbox */}
