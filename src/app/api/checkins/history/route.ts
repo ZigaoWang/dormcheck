@@ -23,19 +23,25 @@ export async function GET(req: NextRequest) {
   const startDate = new Date(start + "T00:00:00");
   const endDate = new Date(end + "T23:59:59.999");
 
-  // Get student IDs for house filter
+  // Get active students in house with details
   const studentConditions = [eq(students.isActive, true)];
   if (house) studentConditions.push(eq(students.house, house));
+  if (grade) studentConditions.push(eq(students.grade, parseInt(grade, 10)));
 
   const houseStudents = await db
-    .select({ studentId: students.studentId })
+    .select({
+      studentId: students.studentId,
+      name: students.name,
+      grade: students.grade,
+      house: students.house,
+    })
     .from(students)
     .where(and(...studentConditions));
 
   const houseStudentIds = houseStudents.map((s) => s.studentId);
 
   if (houseStudentIds.length === 0) {
-    return NextResponse.json([]);
+    return NextResponse.json({ checkins: [], students: [] });
   }
 
   const conditions = [
@@ -51,7 +57,7 @@ export async function GET(req: NextRequest) {
     .from(checkins)
     .where(and(...conditions))
     .orderBy(desc(checkins.createdAt))
-    .limit(1000);
+    .limit(5000);
 
-  return NextResponse.json(results);
+  return NextResponse.json({ checkins: results, students: houseStudents });
 }
