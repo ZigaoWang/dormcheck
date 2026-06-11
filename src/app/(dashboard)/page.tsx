@@ -274,13 +274,6 @@ export default function DashboardPage() {
             onChange={(e) => setDate(e.target.value)}
             className="w-40"
           />
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => window.open(`/api/export?date=${date}&type=${tab}&house=${house}`, "_blank")}
-          >
-            Export
-          </Button>
         </div>
       </div>
 

@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { format, startOfWeek, endOfWeek, subWeeks } from "date-fns";
+import { useState, useEffect, useCallback } from "react";
+import { format, startOfWeek, endOfWeek, subWeeks, subDays } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
@@ -18,114 +18,149 @@ interface Checkin {
   createdAt: string;
 }
 
+type Preset = "today" | "yesterday" | "thisWeek" | "lastWeek" | "custom";
+
 export default function HistoryPage() {
   const today = format(new Date(), "yyyy-MM-dd");
+  const [preset, setPreset] = useState<Preset>("thisWeek");
   const [startDate, setStartDate] = useState(today);
   const [endDate, setEndDate] = useState(today);
   const [gradeFilter, setGradeFilter] = useState("");
   const [typeFilter, setTypeFilter] = useState("");
   const [checkins, setCheckins] = useState<Checkin[]>([]);
   const [loading, setLoading] = useState(false);
-  const [searched, setSearched] = useState(false);
 
-  function applyPreset(preset: "today" | "thisWeek" | "lastWeek") {
+  function applyPreset(p: Preset) {
+    setPreset(p);
     const now = new Date();
-    if (preset === "today") {
+    if (p === "today") {
       setStartDate(today); setEndDate(today);
-    } else if (preset === "thisWeek") {
+    } else if (p === "yesterday") {
+      const y = format(subDays(now, 1), "yyyy-MM-dd");
+      setStartDate(y); setEndDate(y);
+    } else if (p === "thisWeek") {
       setStartDate(format(startOfWeek(now, { weekStartsOn: 1 }), "yyyy-MM-dd"));
       setEndDate(format(endOfWeek(now, { weekStartsOn: 1 }), "yyyy-MM-dd"));
-    } else {
+    } else if (p === "lastWeek") {
       const last = subWeeks(now, 1);
       setStartDate(format(startOfWeek(last, { weekStartsOn: 1 }), "yyyy-MM-dd"));
       setEndDate(format(endOfWeek(last, { weekStartsOn: 1 }), "yyyy-MM-dd"));
     }
   }
 
-  async function handleSearch() {
+  useEffect(() => {
+    applyPreset("thisWeek");
+  }, []);
+
+  const search = useCallback(async () => {
     setLoading(true);
-    setSearched(true);
     const params = new URLSearchParams();
     params.set("start", startDate);
     params.set("end", endDate);
     if (gradeFilter) params.set("grade", gradeFilter);
     if (typeFilter) params.set("type", typeFilter);
-
     const res = await fetch(`/api/checkins/history?${params}`);
     const data = await res.json();
     setCheckins(data);
     setLoading(false);
-  }
+  }, [startDate, endDate, gradeFilter, typeFilter]);
+
+  useEffect(() => {
+    if (startDate && endDate) search();
+  }, [search, startDate, endDate]);
+
+  const exportUrl = `/api/export?start=${startDate}&end=${endDate}${typeFilter ? `&type=${typeFilter}` : ""}`;
+  const rangeLabel = startDate === endDate
+    ? format(new Date(startDate + "T00:00"), "EEEE, MMM d")
+    : `${format(new Date(startDate + "T00:00"), "MMM d")} – ${format(new Date(endDate + "T00:00"), "MMM d")}`;
 
   return (
     <div className="space-y-6">
-      <h1 className="text-xl font-semibold">History</h1>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <h1 className="text-xl font-semibold">Records</h1>
+          <p className="text-sm text-gray-400">{rangeLabel}</p>
+        </div>
+        <Button
+          onClick={() => window.open(exportUrl, "_blank")}
+          size="sm"
+          disabled={!startDate || !endDate}
+        >
+          Download CSV
+        </Button>
+      </div>
 
-      <div className="flex flex-wrap items-end gap-3">
-        <div className="flex gap-1">
-          <Button variant="outline" size="sm" onClick={() => applyPreset("today")}>Today</Button>
-          <Button variant="outline" size="sm" onClick={() => applyPreset("thisWeek")}>This Week</Button>
-          <Button variant="outline" size="sm" onClick={() => applyPreset("lastWeek")}>Last Week</Button>
+      <div className="rounded-xl border bg-white p-4 space-y-3">
+        <div className="flex flex-wrap gap-2">
+          {([
+            { id: "today", label: "Today" },
+            { id: "yesterday", label: "Yesterday" },
+            { id: "thisWeek", label: "This Week" },
+            { id: "lastWeek", label: "Last Week" },
+            { id: "custom", label: "Custom" },
+          ] as { id: Preset; label: string }[]).map((p) => (
+            <button
+              key={p.id}
+              onClick={() => p.id === "custom" ? setPreset("custom") : applyPreset(p.id)}
+              className={cn(
+                "rounded-md border px-3 py-1.5 text-sm font-medium transition-colors",
+                preset === p.id
+                  ? "border-gray-900 bg-gray-900 text-white"
+                  : "border-gray-200 bg-white text-gray-600 hover:border-gray-400"
+              )}
+            >
+              {p.label}
+            </button>
+          ))}
         </div>
-        <div>
-          <label className="mb-1 block text-sm text-gray-500">From</label>
-          <Input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="w-40" />
-        </div>
-        <div>
-          <label className="mb-1 block text-sm text-gray-500">To</label>
-          <Input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} className="w-40" />
-        </div>
-        <div>
-          <label className="mb-1 block text-sm text-gray-500">Year</label>
-          <select
-            value={gradeFilter}
-            onChange={(e) => setGradeFilter(e.target.value)}
-            className="h-9 rounded-md border px-3 text-sm"
-          >
-            <option value="">All</option>
-            {[9, 10, 11, 12].map((g) => (
-              <option key={g} value={g}>Year {g}</option>
-            ))}
-          </select>
-        </div>
-        <div>
-          <label className="mb-1 block text-sm text-gray-500">Type</label>
-          <select
-            value={typeFilter}
-            onChange={(e) => setTypeFilter(e.target.value)}
-            className="h-9 rounded-md border px-3 text-sm"
-          >
-            <option value="">All</option>
-            <option value="morning">Morning</option>
-            <option value="studyhall">Study Hall</option>
-            <option value="tech_handin">Tech Hand-in</option>
-          </select>
-        </div>
-        <Button onClick={handleSearch} size="sm">Search</Button>
-        {checkins.length > 0 && (
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() =>
-              window.open(
-                `/api/export?start=${startDate}&end=${endDate}&type=${typeFilter}`,
-                "_blank"
-              )
-            }
-          >
-            Export
-          </Button>
+
+        {preset === "custom" && (
+          <div className="flex flex-wrap items-end gap-3 pt-1">
+            <div>
+              <label className="mb-1 block text-xs text-gray-500">From</label>
+              <Input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="w-40" />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs text-gray-500">To</label>
+              <Input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} className="w-40" />
+            </div>
+          </div>
         )}
+
+        <div className="flex flex-wrap gap-3 pt-2 border-t">
+          <div>
+            <label className="mb-1 block text-xs text-gray-500">Year</label>
+            <select
+              value={gradeFilter}
+              onChange={(e) => setGradeFilter(e.target.value)}
+              className="h-9 rounded-md border px-3 text-sm"
+            >
+              <option value="">All years</option>
+              {[9, 10, 11, 12].map((g) => (
+                <option key={g} value={g}>Year {g}</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="mb-1 block text-xs text-gray-500">Type</label>
+            <select
+              value={typeFilter}
+              onChange={(e) => setTypeFilter(e.target.value)}
+              className="h-9 rounded-md border px-3 text-sm"
+            >
+              <option value="">All types</option>
+              <option value="morning">Morning</option>
+              <option value="studyhall">Study Hall</option>
+              <option value="tech_handin">Tech Hand-in</option>
+            </select>
+          </div>
+        </div>
       </div>
 
       {loading ? (
         <p className="py-8 text-center text-sm text-gray-400">Loading...</p>
-      ) : !searched ? (
-        <p className="py-8 text-center text-sm text-gray-400">
-          Select a date range and click Search.
-        </p>
       ) : checkins.length === 0 ? (
-        <p className="py-8 text-center text-sm text-gray-400">No records found.</p>
+        <p className="py-8 text-center text-sm text-gray-400">No records found in this range.</p>
       ) : (
         <div className="space-y-6">
           <p className="text-sm text-gray-400">{checkins.length} records</p>
