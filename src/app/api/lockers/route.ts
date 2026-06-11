@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { lockers, students, devices } from "@/lib/db/schema";
-import { eq, and, inArray } from "drizzle-orm";
+import { lockers, students, devices, deviceExemptions } from "@/lib/db/schema";
+import { eq, and, inArray, gte } from "drizzle-orm";
 import { getSessionUser, houseFilter } from "@/lib/session";
 
 export async function GET(req: NextRequest) {
@@ -31,6 +31,21 @@ export async function GET(req: NextRequest) {
 
   const lockerMap = new Map(lockerRows.map((l) => [l.studentId, l]));
 
+  const today = new Date().toISOString().split("T")[0];
+  const exemptionRows = await db
+    .select()
+    .from(deviceExemptions)
+    .where(and(
+      inArray(deviceExemptions.studentId, studentIds),
+      gte(deviceExemptions.endDate, today),
+    ));
+
+  const exemptionsByStudent = new Map<string, typeof exemptionRows>();
+  for (const e of exemptionRows) {
+    if (!exemptionsByStudent.has(e.studentId)) exemptionsByStudent.set(e.studentId, []);
+    exemptionsByStudent.get(e.studentId)!.push(e);
+  }
+
   const result = houseStudents.map((s) => {
     const locker = lockerMap.get(s.studentId);
     return {
@@ -46,6 +61,7 @@ export async function GET(req: NextRequest) {
             hasIpad: locker.hasIpad,
           }
         : null,
+      exemptions: exemptionsByStudent.get(s.studentId) || [],
     };
   });
 
