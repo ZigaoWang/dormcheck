@@ -217,21 +217,16 @@ class CheckinActivity : AppCompatActivity() {
     private fun updateModeDisplay() {}
 
     private fun showModeSelector() {
-        val modes = arrayOf("Morning", "Study Hall", "Tech Hand-in")
-        val current = when (viewModel.checkType.value) {
-            CheckType.STUDYHALL -> 1
-            CheckType.TECH_HANDIN -> 2
-            else -> 0
-        }
+        val modes = arrayOf("Check-in (Auto)", "Tech Hand-in")
+        val current = if (viewModel.checkType.value == CheckType.TECH_HANDIN) 1 else 0
         AlertDialog.Builder(this)
             .setTitle("Check Mode")
             .setSingleChoiceItems(modes, current) { dialog, which ->
-                val type = when (which) {
-                    1 -> CheckType.STUDYHALL
-                    2 -> CheckType.TECH_HANDIN
-                    else -> CheckType.MORNING
+                if (which == 1) {
+                    viewModel.setCheckType(CheckType.TECH_HANDIN)
+                } else {
+                    viewModel.clearTechMode()
                 }
-                viewModel.setCheckType(type)
                 updateModeDisplay()
                 if (viewModel.state.value is CheckinResult.Idle) showIdle()
                 dialog.dismiss()
@@ -736,6 +731,8 @@ class CheckinActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         cardReader.enableForegroundDispatch()
+        viewModel.refreshAutoCheckType()
+        if (viewModel.state.value is CheckinResult.Idle) showIdle()
         viewModel.syncPending()
     }
 

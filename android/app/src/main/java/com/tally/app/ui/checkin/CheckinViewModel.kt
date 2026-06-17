@@ -12,6 +12,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.io.File
+import java.util.Calendar
 
 class CheckinViewModel : ViewModel() {
 
@@ -21,7 +22,7 @@ class CheckinViewModel : ViewModel() {
     private val _state = MutableLiveData<CheckinResult>(CheckinResult.Idle)
     val state: LiveData<CheckinResult> = _state
 
-    private val _checkType = MutableLiveData(CheckType.fromValue(prefs.checkType))
+    private val _checkType = MutableLiveData(initialCheckType())
     val checkType: LiveData<CheckType> = _checkType
 
     private val _pendingCount = MutableLiveData(0)
@@ -316,6 +317,34 @@ class CheckinViewModel : ViewModel() {
         prefs.checkType = type.value
     }
 
+    fun clearTechMode() {
+        val auto = autoCheckTypeForNow()
+        _checkType.value = auto
+        prefs.checkType = auto.value
+    }
+
+    fun refreshAutoCheckType() {
+        if (_checkType.value == CheckType.TECH_HANDIN) return
+        val auto = autoCheckTypeForNow()
+        if (_checkType.value != auto) {
+            _checkType.value = auto
+            prefs.checkType = auto.value
+        }
+    }
+
+    private fun initialCheckType(): CheckType {
+        val saved = CheckType.fromValue(prefs.checkType)
+        if (saved == CheckType.TECH_HANDIN) return saved
+        val auto = autoCheckTypeForNow()
+        if (saved != auto) prefs.checkType = auto.value
+        return auto
+    }
+
+    private fun autoCheckTypeForNow(): CheckType {
+        val hour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
+        return if (hour < 12) CheckType.MORNING else CheckType.STUDYHALL
+    }
+
     fun syncPending() {
         if (syncJob?.isActive == true) return
         syncJob = viewModelScope.launch {
@@ -334,6 +363,7 @@ class CheckinViewModel : ViewModel() {
         resetJob?.cancel()
         resetJob = viewModelScope.launch {
             delay(3000)
+            refreshAutoCheckType()
             _state.value = CheckinResult.Idle
         }
     }
